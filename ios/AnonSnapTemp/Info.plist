@@ -35,10 +35,6 @@
 	</dict>
 	<key>NSCameraUsageDescription</key>
 	<string>Anon Snap needs camera access to take photos for face anonymization.</string>
-	<key>NSLocationWhenInUseUsageDescription</key>
-	<string></string>
-	<key>NSMicrophoneUsageDescription</key>
-	<string>Anon Snap needs microphone access for video recording.</string>
 	<key>NSPhotoLibraryAddUsageDescription</key>
 	<string>Anon Snap needs permission to save anonymized photos to your library.</string>
 	<key>NSPhotoLibraryUsageDescription</key>
