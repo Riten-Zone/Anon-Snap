@@ -1,0 +1,27 @@
+import type {NativeStackScreenProps} from '@react-navigation/native-stack';
+
+export type RootStackParamList = {
+  Splash: undefined;
+  Home: undefined;
+  Camera: undefined;
+  Editor: {
+    photoUri: string;
+  };
+};
+
+export type SplashScreenProps = NativeStackScreenProps<
+  RootStackParamList,
+  'Splash'
+>;
+export type HomeScreenProps = NativeStackScreenProps<
+  RootStackParamList,
+  'Home'
+>;
+export type CameraScreenProps = NativeStackScreenProps<
+  RootStackParamList,
+  'Camera'
+>;
+export type EditorScreenProps = NativeStackScreenProps<
+  RootStackParamList,
+  'Editor'
+>;
