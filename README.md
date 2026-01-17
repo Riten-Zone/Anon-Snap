@@ -1,97 +1,119 @@
-This is a new [**React Native**](https://reactnative.dev) project, bootstrapped using [`@react-native-community/cli`](https://github.com/react-native-community/cli).
+# Anon Snap
 
-# Getting Started
+A privacy-preserving face anonymization app for iOS. Take photos, automatically detect and blur faces, add stickers, and share - all 100% offline with no data leaving your device.
 
-> **Note**: Make sure you have completed the [Set Up Your Environment](https://reactnative.dev/docs/set-up-your-environment) guide before proceeding.
+## Features
 
-## Step 1: Start Metro
+- Camera support (front and back)
+- Import photos from gallery
+- On-device face detection (MLKit - no internet required)
+- Automatic face blurring
+- Snapchat-like sticker editing (move, rotate, scale, delete)
+- Export to gallery, Twitter, or Telegram
+- Fully offline - privacy first
 
-First, you will need to run **Metro**, the JavaScript build tool for React Native.
+## Prerequisites
 
-To start the Metro dev server, run the following command from the root of your React Native project:
+- Node.js 18+
+- Xcode 15+ with Command Line Tools
+- CocoaPods (`sudo gem install cocoapods`)
+- Physical iOS device (iOS 15.5+) - Face detection requires real device
 
-```sh
-# Using npm
-npm start
+## Installation
 
-# OR using Yarn
-yarn start
+1. Clone the repository:
+   ```bash
+   git clone <repo-url>
+   cd Anon-Snap
+   ```
+
+2. Install dependencies:
+   ```bash
+   npm install
+   ```
+
+3. Install iOS pods:
+   ```bash
+   cd ios && pod install && cd ..
+   ```
+
+## Xcode Configuration (Required)
+
+Before building, you must configure Xcode:
+
+1. **Open the workspace** (NOT the .xcodeproj):
+   ```bash
+   open ios/AnonSnapTemp.xcworkspace
+   ```
+
+2. **Select the AnonSnapTemp target** in the left sidebar
+
+3. **Go to "Signing & Capabilities" tab:**
+   - Set your Development Team
+   - Ensure "Automatically manage signing" is checked
+
+4. **Go to "Build Settings" tab:**
+   - Search for "User Script Sandboxing"
+   - Set `ENABLE_USER_SCRIPT_SANDBOXING` to `NO` (fixes Hermes build)
+
+## Running the App
+
+1. Start Metro bundler:
+   ```bash
+   npm start
+   ```
+
+2. In a new terminal, build and run on device:
+   ```bash
+   npx react-native run-ios --device
+   ```
+
+3. If prompted, unlock your iPhone and trust the developer certificate:
+   - Go to Settings → General → VPN & Device Management → Trust
+
+## Troubleshooting
+
+### Port 8081 already in use
+
+Kill the existing process or use a different port:
+```bash
+lsof -i :8081
+kill -9 <PID>
+
+# Or use alternative port:
+npm start -- --port 8082
 ```
 
-## Step 2: Build and run your app
+### Code signing error
 
-With Metro running, open a new terminal window/pane from the root of your React Native project, and use one of the following commands to build and run your Android or iOS app:
+Open Xcode, select your target, and set your Development Team in Signing & Capabilities.
 
-### Android
+### Hermes sandbox build error
 
-```sh
-# Using npm
-npm run android
+In Xcode Build Settings, search "User Script Sandboxing" and set to `NO`.
 
-# OR using Yarn
-yarn android
-```
+### "Connect to Metro" error on device
 
-### iOS
+- Ensure Metro is running (`npm start`)
+- Device and Mac must be on the same WiFi network
+- Try shaking device → "Configure Bundler" → enter Mac's IP address
 
-For iOS, remember to install CocoaPods dependencies (this only needs to be run on first clone or after updating native deps).
+### Device shows as locked
 
-The first time you create a new project, run the Ruby bundler to install CocoaPods itself:
+Unlock your iPhone before running the build command.
 
-```sh
-bundle install
-```
+## Tech Stack
 
-Then, and every time you update your native dependencies, run:
+| Library | Purpose |
+|---------|---------|
+| react-native-vision-camera | Camera access |
+| react-native-vision-camera-face-detector | MLKit face detection |
+| @shopify/react-native-skia | Drawing/compositing |
+| react-native-gesture-handler | Sticker gestures |
+| react-native-reanimated | Animations |
 
-```sh
-bundle exec pod install
-```
+## Platform Requirements
 
-For more information, please visit [CocoaPods Getting Started guide](https://guides.cocoapods.org/using/getting-started.html).
-
-```sh
-# Using npm
-npm run ios
-
-# OR using Yarn
-yarn ios
-```
-
-If everything is set up correctly, you should see your new app running in the Android Emulator, iOS Simulator, or your connected device.
-
-This is one way to run your app — you can also build it directly from Android Studio or Xcode.
-
-## Step 3: Modify your app
-
-Now that you have successfully run the app, let's make changes!
-
-Open `App.tsx` in your text editor of choice and make some changes. When you save, your app will automatically update and reflect these changes — this is powered by [Fast Refresh](https://reactnative.dev/docs/fast-refresh).
-
-When you want to forcefully reload, for example to reset the state of your app, you can perform a full reload:
-
-- **Android**: Press the <kbd>R</kbd> key twice or select **"Reload"** from the **Dev Menu**, accessed via <kbd>Ctrl</kbd> + <kbd>M</kbd> (Windows/Linux) or <kbd>Cmd ⌘</kbd> + <kbd>M</kbd> (macOS).
-- **iOS**: Press <kbd>R</kbd> in iOS Simulator.
-
-## Congratulations! :tada:
-
-You've successfully run and modified your React Native App. :partying_face:
-
-### Now what?
-
-- If you want to add this new React Native code to an existing application, check out the [Integration guide](https://reactnative.dev/docs/integration-with-existing-apps).
-- If you're curious to learn more about React Native, check out the [docs](https://reactnative.dev/docs/getting-started).
-
-# Troubleshooting
-
-If you're having issues getting the above steps to work, see the [Troubleshooting](https://reactnative.dev/docs/troubleshooting) page.
-
-# Learn More
-
-To learn more about React Native, take a look at the following resources:
-
-- [React Native Website](https://reactnative.dev) - learn more about React Native.
-- [Getting Started](https://reactnative.dev/docs/environment-setup) - an **overview** of React Native and how setup your environment.
-- [Learn the Basics](https://reactnative.dev/docs/getting-started) - a **guided tour** of the React Native **basics**.
-- [Blog](https://reactnative.dev/blog) - read the latest official React Native **Blog** posts.
-- [`@facebook/react-native`](https://github.com/facebook/react-native) - the Open Source; GitHub **repository** for React Native.
+- **iOS**: 15.5+ (VisionCamera requirement)
+- **React Native**: 0.83+ (New Architecture)
+- Physical device required for face detection
