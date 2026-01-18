@@ -1,12 +1,14 @@
 import React, {useState, useCallback} from 'react';
 import {
   View,
+  Text,
   StyleSheet,
   StatusBar,
   Alert,
   Image,
   Dimensions,
   TouchableWithoutFeedback,
+  TouchableOpacity,
 } from 'react-native';
 import {GestureHandlerRootView} from 'react-native-gesture-handler';
 import type {EditorScreenProps} from '../types';
@@ -23,9 +25,9 @@ import ShareSheet from '../components/share/ShareSheet';
 
 const {width: SCREEN_WIDTH, height: SCREEN_HEIGHT} = Dimensions.get('window');
 
-// Fixed display area for the image
+// Full screen display area for the image
 const DISPLAY_AREA_WIDTH = SCREEN_WIDTH;
-const DISPLAY_AREA_HEIGHT = SCREEN_HEIGHT * 0.7;
+const DISPLAY_AREA_HEIGHT = SCREEN_HEIGHT;
 
 const EditorScreen: React.FC<EditorScreenProps> = ({navigation, route}) => {
   const {photoUri} = route.params;
@@ -288,19 +290,13 @@ const EditorScreen: React.FC<EditorScreenProps> = ({navigation, route}) => {
         onClose={handleClose}
       />
 
-      {/* Bottom action button */}
-      <View style={styles.bottomBar}>
-        <View style={styles.exportButton}>
-          <TouchableWithoutFeedback onPress={() => setShowShareSheet(true)}>
-            <View style={styles.exportButtonInner}>
-              <Image
-                source={{uri: photoUri}}
-                style={styles.thumbnailImage}
-              />
-            </View>
-          </TouchableWithoutFeedback>
-        </View>
-      </View>
+      {/* Share button overlay */}
+      <TouchableOpacity
+        style={styles.shareButton}
+        onPress={() => setShowShareSheet(true)}
+        activeOpacity={0.8}>
+        <Text style={styles.shareButtonText}>Share</Text>
+      </TouchableOpacity>
 
       {/* Sticker Picker */}
       <StickerPicker
@@ -337,27 +333,19 @@ const styles = StyleSheet.create({
   stickersLayer: {
     position: 'absolute',
   },
-  bottomBar: {
+  shareButton: {
     position: 'absolute',
-    bottom: 30,
-    left: 0,
-    right: 0,
-    alignItems: 'center',
+    bottom: 50,
+    alignSelf: 'center',
+    backgroundColor: 'rgba(255, 255, 255, 0.9)',
+    paddingHorizontal: 32,
+    paddingVertical: 14,
+    borderRadius: 25,
   },
-  exportButton: {
-    width: 60,
-    height: 60,
-    borderRadius: 12,
-    overflow: 'hidden',
-    borderWidth: 3,
-    borderColor: '#ffffff',
-  },
-  exportButtonInner: {
-    flex: 1,
-  },
-  thumbnailImage: {
-    width: '100%',
-    height: '100%',
+  shareButtonText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#000000',
   },
 });
 
