@@ -3,12 +3,11 @@ import {View, Text, StyleSheet, TouchableOpacity} from 'react-native';
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
-  withSpring,
+  runOnJS,
 } from 'react-native-reanimated';
 import {
   Gesture,
   GestureDetector,
-  GestureHandlerRootView,
 } from 'react-native-gesture-handler';
 import type {StickerData} from '../../types';
 
@@ -35,40 +34,49 @@ const Sticker: React.FC<StickerProps> = ({
   // Pan gesture for moving
   const panGesture = Gesture.Pan()
     .onStart(() => {
-      onSelect(sticker.id);
+      'worklet';
+      runOnJS(onSelect)(sticker.id);
     })
     .onUpdate(event => {
+      'worklet';
       translateX.value = sticker.x + event.translationX;
       translateY.value = sticker.y + event.translationY;
     })
     .onEnd(event => {
+      'worklet';
       const newX = sticker.x + event.translationX;
       const newY = sticker.y + event.translationY;
-      onUpdate(sticker.id, {x: newX, y: newY});
+      runOnJS(onUpdate)(sticker.id, {x: newX, y: newY});
     });
 
   // Pinch gesture for scaling
   const pinchGesture = Gesture.Pinch()
     .onStart(() => {
+      'worklet';
       savedScale.value = scale.value;
     })
     .onUpdate(event => {
+      'worklet';
       scale.value = Math.max(0.2, Math.min(3, savedScale.value * event.scale));
     })
     .onEnd(() => {
-      onUpdate(sticker.id, {scale: scale.value});
+      'worklet';
+      runOnJS(onUpdate)(sticker.id, {scale: scale.value});
     });
 
   // Rotation gesture
   const rotationGesture = Gesture.Rotation()
     .onStart(() => {
+      'worklet';
       savedRotation.value = rotation.value;
     })
     .onUpdate(event => {
+      'worklet';
       rotation.value = savedRotation.value + (event.rotation * 180) / Math.PI;
     })
     .onEnd(() => {
-      onUpdate(sticker.id, {rotation: rotation.value});
+      'worklet';
+      runOnJS(onUpdate)(sticker.id, {rotation: rotation.value});
     });
 
   const composedGestures = Gesture.Simultaneous(
@@ -91,19 +99,23 @@ const Sticker: React.FC<StickerProps> = ({
 
   const handleScaleStart = Gesture.Pan()
     .onUpdate(event => {
+      'worklet';
       const newScale = sticker.scale + event.translationY * -0.005;
       scale.value = Math.max(0.2, Math.min(3, newScale));
     })
     .onEnd(() => {
-      onUpdate(sticker.id, {scale: scale.value});
+      'worklet';
+      runOnJS(onUpdate)(sticker.id, {scale: scale.value});
     });
 
   const handleRotateStart = Gesture.Pan()
     .onUpdate(event => {
+      'worklet';
       rotation.value = sticker.rotation + event.translationX * 0.5;
     })
     .onEnd(() => {
-      onUpdate(sticker.id, {rotation: rotation.value});
+      'worklet';
+      runOnJS(onUpdate)(sticker.id, {rotation: rotation.value});
     });
 
   return (
@@ -170,11 +182,10 @@ const styles = StyleSheet.create({
   blurPreview: {
     flex: 1,
     width: '100%',
-    backgroundColor: 'rgba(100, 100, 100, 0.5)',
+    backgroundColor: 'rgba(100, 100, 100, 0.7)',
     borderRadius: 8,
     justifyContent: 'center',
     alignItems: 'center',
-    backdropFilter: 'blur(10px)',
   },
   blurText: {
     fontSize: 14,

@@ -10,9 +10,15 @@ export async function detectFacesInImage(
   options: FaceDetectionOptions = {},
 ): Promise<DetectedFace[]> {
   try {
-    // The API expects an object with image and options properties
+    // Ensure path has file:// prefix (required by the library)
+    const normalizedPath = imagePath.startsWith('file://')
+      ? imagePath
+      : `file://${imagePath}`;
+
+    console.log('[FaceDetection] Processing image:', normalizedPath);
+
     const result = await detectFaces({
-      image: imagePath,
+      image: normalizedPath,
       options: {
         performanceMode: options.performanceMode || 'accurate',
         landmarkMode: 'none',
@@ -21,9 +27,14 @@ export async function detectFacesInImage(
       },
     });
 
+    console.log('[FaceDetection] Raw result:', JSON.stringify(result, null, 2));
+
     if (!result || !Array.isArray(result)) {
+      console.log('[FaceDetection] No faces detected or invalid result');
       return [];
     }
+
+    console.log('[FaceDetection] Detected', result.length, 'face(s)');
 
     return result.map((face: Face) => ({
       bounds: {
@@ -37,7 +48,7 @@ export async function detectFacesInImage(
       pitchAngle: face.pitchAngle,
     }));
   } catch (error) {
-    console.warn('Face detection error:', error);
+    console.error('[FaceDetection] Error:', error);
     return [];
   }
 }

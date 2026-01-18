@@ -63,10 +63,13 @@ const EditorScreen: React.FC<EditorScreenProps> = ({navigation, route}) => {
   useEffect(() => {
     const loadImage = async () => {
       try {
+        console.log('[Editor] Loading photo:', photoUri);
+
         // Get image dimensions
         Image.getSize(
           photoUri,
           (width, height) => {
+            console.log('[Editor] Image dimensions:', width, 'x', height);
             setImageSize({width, height});
 
             // Calculate display size maintaining aspect ratio
@@ -82,12 +85,13 @@ const EditorScreen: React.FC<EditorScreenProps> = ({navigation, route}) => {
             setDisplaySize({width: displayWidth, height: displayHeight});
           },
           error => {
-            console.error('Error getting image size:', error);
+            console.error('[Editor] Error getting image size:', error);
           },
         );
 
         // Detect faces
         const faces = await detectFacesInImage(photoUri);
+        console.log('[Editor] Faces detected:', faces.length);
         setDetectedFaces(faces);
 
         // Scale face bounds to display size
@@ -115,13 +119,16 @@ const EditorScreen: React.FC<EditorScreenProps> = ({navigation, route}) => {
               },
             }));
 
+            console.log('[Editor] Initializing blur stickers for', scaledFaces.length, 'faces');
             initializeBlurStickers(scaledFaces);
           });
+        } else {
+          console.log('[Editor] No faces detected, skipping blur initialization');
         }
 
         setIsLoading(false);
       } catch (error) {
-        console.error('Error loading image:', error);
+        console.error('[Editor] Error loading image:', error);
         setIsLoading(false);
       }
     };
