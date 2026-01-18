@@ -39,9 +39,9 @@ const EditorScreen: React.FC<EditorScreenProps> = ({navigation, route}) => {
 
   const {
     stickers,
-    selectedStickerId,
+    isAddMode,
+    pendingEmoji,
     initializeBlurStickers,
-    addSticker,
     replaceWithEmoji,
     updateStickerPosition,
     updateStickerScale,
@@ -49,6 +49,9 @@ const EditorScreen: React.FC<EditorScreenProps> = ({navigation, route}) => {
     deleteSticker,
     selectSticker,
     deselectAll,
+    enterAddMode,
+    exitAddMode,
+    addStickerAtPosition,
   } = useStickers();
 
   // Handle image load - get correct dimensions after EXIF orientation is applied
@@ -126,12 +129,10 @@ const EditorScreen: React.FC<EditorScreenProps> = ({navigation, route}) => {
 
   const handleAddSticker = useCallback(
     (emoji: string) => {
-      // Add sticker at center of image
-      const centerX = displaySize.width / 2;
-      const centerY = displaySize.height / 2;
-      addSticker(emoji, centerX, centerY);
+      enterAddMode(emoji);
+      setShowStickerPicker(false);
     },
-    [addSticker, displaySize],
+    [enterAddMode],
   );
 
   const handleSwitchBlur = useCallback(() => {
@@ -146,16 +147,25 @@ const EditorScreen: React.FC<EditorScreenProps> = ({navigation, route}) => {
     }
   }, [stickers, replaceWithEmoji]);
 
-  const handleBackgroundTap = useCallback(() => {
-    deselectAll();
-    setShowStickerPicker(false);
-  }, [deselectAll]);
+  const handleBackgroundTapWithPosition = useCallback(
+    (x: number, y: number) => {
+      if (isAddMode && pendingEmoji) {
+        // In add mode, add a new sticker at tap location
+        addStickerAtPosition(x, y);
+      } else {
+        // Normal mode, deselect all
+        deselectAll();
+        setShowStickerPicker(false);
+      }
+    },
+    [isAddMode, pendingEmoji, addStickerAtPosition, deselectAll],
+  );
 
   // Background tap gesture - only triggers when tapping empty space
   const backgroundTapGesture = Gesture.Tap()
-    .onEnd(() => {
+    .onEnd(event => {
       'worklet';
-      runOnJS(handleBackgroundTap)();
+      runOnJS(handleBackgroundTapWithPosition)(event.x, event.y);
     });
 
   const handleClose = useCallback(() => {
@@ -295,6 +305,8 @@ const EditorScreen: React.FC<EditorScreenProps> = ({navigation, route}) => {
         onAddSticker={() => setShowStickerPicker(true)}
         onSwitchBlur={handleSwitchBlur}
         onClose={handleClose}
+        isAddMode={isAddMode}
+        onExitAddMode={exitAddMode}
       />
 
       {/* Share button overlay */}

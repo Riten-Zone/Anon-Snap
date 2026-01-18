@@ -5,12 +5,16 @@ interface TopToolbarProps {
   onAddSticker: () => void;
   onSwitchBlur: () => void;
   onClose: () => void;
+  isAddMode: boolean;
+  onExitAddMode: () => void;
 }
 
 const TopToolbar: React.FC<TopToolbarProps> = ({
   onAddSticker,
   onSwitchBlur,
   onClose,
+  isAddMode,
+  onExitAddMode,
 }) => {
   return (
     <View style={styles.container}>
@@ -28,11 +32,11 @@ const TopToolbar: React.FC<TopToolbarProps> = ({
         </TouchableOpacity>
 
         <TouchableOpacity
-          style={styles.toolButton}
-          onPress={onAddSticker}
+          style={[styles.toolButton, isAddMode && styles.toolButtonActive]}
+          onPress={isAddMode ? onExitAddMode : onAddSticker}
           activeOpacity={0.7}>
           <Text style={styles.toolIcon}>😀</Text>
-          <Text style={styles.toolLabel}>Add</Text>
+          <Text style={styles.toolLabel}>{isAddMode ? 'Done' : 'Add'}</Text>
         </TouchableOpacity>
       </View>
     </View>
@@ -74,6 +78,9 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
     paddingHorizontal: 12,
     minWidth: 60,
+  },
+  toolButtonActive: {
+    backgroundColor: '#ff9500',
   },
   toolIcon: {
     fontSize: 24,

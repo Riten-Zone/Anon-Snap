@@ -19,6 +19,8 @@ export function useStickers(initialFaces: DetectedFace[] = []) {
   const [selectedStickerId, setSelectedStickerId] = useState<string | null>(
     null,
   );
+  const [isAddMode, setIsAddMode] = useState(false);
+  const [pendingEmoji, setPendingEmoji] = useState<string | null>(null);
 
   // Initialize blur stickers for detected faces
   const initializeBlurStickers = useCallback((faces: DetectedFace[]) => {
@@ -113,9 +115,32 @@ export function useStickers(initialFaces: DetectedFace[] = []) {
     setStickers(prev => prev.map(s => ({...s, isSelected: false})));
   }, []);
 
+  // Enter add mode with selected emoji
+  const enterAddMode = useCallback((emoji: string) => {
+    setPendingEmoji(emoji);
+    setIsAddMode(true);
+  }, []);
+
+  // Exit add mode
+  const exitAddMode = useCallback(() => {
+    setPendingEmoji(null);
+    setIsAddMode(false);
+  }, []);
+
+  // Add sticker at position (used when tapping in add mode)
+  const addStickerAtPosition = useCallback(
+    (x: number, y: number) => {
+      if (!pendingEmoji) return;
+      addSticker(pendingEmoji, x, y);
+    },
+    [pendingEmoji, addSticker],
+  );
+
   return {
     stickers,
     selectedStickerId,
+    isAddMode,
+    pendingEmoji,
     initializeBlurStickers,
     addSticker,
     replaceWithEmoji,
@@ -125,5 +150,8 @@ export function useStickers(initialFaces: DetectedFace[] = []) {
     deleteSticker,
     selectSticker,
     deselectAll,
+    enterAddMode,
+    exitAddMode,
+    addStickerAtPosition,
   };
 }
