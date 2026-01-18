@@ -1,4 +1,4 @@
-import React, {useEffect, useState, useCallback, useRef} from 'react';
+import React, {useState, useCallback} from 'react';
 import {
   View,
   StyleSheet,
@@ -9,18 +9,6 @@ import {
   TouchableWithoutFeedback,
 } from 'react-native';
 import {GestureHandlerRootView} from 'react-native-gesture-handler';
-import {
-  Canvas,
-  Image as SkiaImage,
-  useImage,
-  Blur,
-  Group,
-  Rect,
-  RoundedRect,
-  Text as SkiaText,
-  useFont,
-  matchFont,
-} from '@shopify/react-native-skia';
 import type {EditorScreenProps} from '../types';
 import type {StickerData, DetectedFace} from '../types';
 import {useStickers, EMOJI_STICKERS} from '../hooks';
@@ -35,15 +23,17 @@ import ShareSheet from '../components/share/ShareSheet';
 
 const {width: SCREEN_WIDTH, height: SCREEN_HEIGHT} = Dimensions.get('window');
 
+// Fixed display area for the image
+const DISPLAY_AREA_WIDTH = SCREEN_WIDTH;
+const DISPLAY_AREA_HEIGHT = SCREEN_HEIGHT * 0.7;
+
 const EditorScreen: React.FC<EditorScreenProps> = ({navigation, route}) => {
   const {photoUri} = route.params;
   const [imageSize, setImageSize] = useState({width: 0, height: 0});
-  const [displaySize, setDisplaySize] = useState({width: SCREEN_WIDTH, height: SCREEN_HEIGHT});
-  const [isLoading, setIsLoading] = useState(true);
+  const [displaySize, setDisplaySize] = useState({width: DISPLAY_AREA_WIDTH, height: DISPLAY_AREA_HEIGHT});
   const [showStickerPicker, setShowStickerPicker] = useState(false);
   const [showShareSheet, setShowShareSheet] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
-  const [detectedFaces, setDetectedFaces] = useState<DetectedFace[]>([]);
 
   const {
     stickers,
@@ -59,81 +49,62 @@ const EditorScreen: React.FC<EditorScreenProps> = ({navigation, route}) => {
     deselectAll,
   } = useStickers();
 
-  // Get image dimensions and detect faces
-  useEffect(() => {
-    const loadImage = async () => {
-      try {
-        console.log('[Editor] Loading photo:', photoUri);
+  // Handle image load - get correct dimensions after EXIF orientation is applied
+  const handleImageLoad = useCallback((event: {nativeEvent: {source: {width: number; height: number}}}) => {
+    const {width, height} = event.nativeEvent.source;
+    console.log('[Editor] Image loaded with dimensions:', width, 'x', height);
 
-        // Get image dimensions
-        Image.getSize(
-          photoUri,
-          (width, height) => {
-            console.log('[Editor] Image dimensions:', width, 'x', height);
-            setImageSize({width, height});
+    setImageSize({width, height});
 
-            // Calculate display size maintaining aspect ratio
-            const aspectRatio = width / height;
-            let displayWidth = SCREEN_WIDTH;
-            let displayHeight = SCREEN_WIDTH / aspectRatio;
+    // Calculate actual display size within our fixed area
+    const aspectRatio = width / height;
+    let displayWidth = DISPLAY_AREA_WIDTH;
+    let displayHeight = DISPLAY_AREA_WIDTH / aspectRatio;
 
-            if (displayHeight > SCREEN_HEIGHT * 0.7) {
-              displayHeight = SCREEN_HEIGHT * 0.7;
-              displayWidth = displayHeight * aspectRatio;
-            }
+    if (displayHeight > DISPLAY_AREA_HEIGHT) {
+      displayHeight = DISPLAY_AREA_HEIGHT;
+      displayWidth = DISPLAY_AREA_HEIGHT * aspectRatio;
+    }
 
-            setDisplaySize({width: displayWidth, height: displayHeight});
+    setDisplaySize({width: displayWidth, height: displayHeight});
+
+    // Now detect faces and scale them
+    detectAndScaleFaces(width, height, displayWidth, displayHeight);
+  }, []);
+
+  // Detect faces and scale to display coordinates
+  const detectAndScaleFaces = useCallback(async (
+    sourceWidth: number,
+    sourceHeight: number,
+    displayWidth: number,
+    displayHeight: number,
+  ) => {
+    try {
+      const faces = await detectFacesInImage(photoUri);
+      console.log('[Editor] Faces detected:', faces.length);
+
+      if (faces.length > 0) {
+        const scaleX = displayWidth / sourceWidth;
+        const scaleY = displayHeight / sourceHeight;
+
+        const scaledFaces: DetectedFace[] = faces.map(face => ({
+          ...face,
+          bounds: {
+            x: face.bounds.x * scaleX,
+            y: face.bounds.y * scaleY,
+            width: face.bounds.width * scaleX,
+            height: face.bounds.height * scaleY,
           },
-          error => {
-            console.error('[Editor] Error getting image size:', error);
-          },
-        );
+        }));
 
-        // Detect faces
-        const faces = await detectFacesInImage(photoUri);
-        console.log('[Editor] Faces detected:', faces.length);
-        setDetectedFaces(faces);
-
-        // Scale face bounds to display size
-        if (faces.length > 0) {
-          Image.getSize(photoUri, (width, height) => {
-            const aspectRatio = width / height;
-            let displayWidth = SCREEN_WIDTH;
-            let displayHeight = SCREEN_WIDTH / aspectRatio;
-
-            if (displayHeight > SCREEN_HEIGHT * 0.7) {
-              displayHeight = SCREEN_HEIGHT * 0.7;
-              displayWidth = displayHeight * aspectRatio;
-            }
-
-            const scaleX = displayWidth / width;
-            const scaleY = displayHeight / height;
-
-            const scaledFaces: DetectedFace[] = faces.map(face => ({
-              ...face,
-              bounds: {
-                x: face.bounds.x * scaleX,
-                y: face.bounds.y * scaleY,
-                width: face.bounds.width * scaleX,
-                height: face.bounds.height * scaleY,
-              },
-            }));
-
-            console.log('[Editor] Initializing blur stickers for', scaledFaces.length, 'faces');
-            initializeBlurStickers(scaledFaces);
-          });
-        } else {
-          console.log('[Editor] No faces detected, skipping blur initialization');
-        }
-
-        setIsLoading(false);
-      } catch (error) {
-        console.error('[Editor] Error loading image:', error);
-        setIsLoading(false);
+        console.log('[Editor] Initializing blur stickers for', scaledFaces.length, 'faces');
+        initializeBlurStickers(scaledFaces);
+      } else {
+        console.log('[Editor] No faces detected');
       }
-    };
-
-    loadImage();
+    } catch (error) {
+      console.error('[Editor] Face detection error:', error);
+    }
   }, [photoUri, initializeBlurStickers]);
 
   const handleStickerUpdate = useCallback(
@@ -283,6 +254,7 @@ const EditorScreen: React.FC<EditorScreenProps> = ({navigation, route}) => {
               },
             ]}
             resizeMode="contain"
+            onLoad={handleImageLoad}
           />
 
           {/* Stickers layer */}

@@ -98,10 +98,14 @@ const Sticker: React.FC<StickerProps> = ({
   }, [sticker.id, onDelete]);
 
   const handleScaleStart = Gesture.Pan()
+    .onStart(() => {
+      'worklet';
+      savedScale.value = scale.value;
+    })
     .onUpdate(event => {
       'worklet';
       // Positive translationY (drag down) = bigger, negative (drag up) = smaller
-      const newScale = sticker.scale + event.translationY * 0.005;
+      const newScale = savedScale.value + event.translationY * 0.005;
       scale.value = Math.max(0.2, Math.min(3, newScale));
     })
     .onEnd(() => {
@@ -110,9 +114,13 @@ const Sticker: React.FC<StickerProps> = ({
     });
 
   const handleRotateStart = Gesture.Pan()
+    .onStart(() => {
+      'worklet';
+      savedRotation.value = rotation.value;
+    })
     .onUpdate(event => {
       'worklet';
-      rotation.value = sticker.rotation + event.translationX * 0.5;
+      rotation.value = savedRotation.value + event.translationX * 0.5;
     })
     .onEnd(() => {
       'worklet';

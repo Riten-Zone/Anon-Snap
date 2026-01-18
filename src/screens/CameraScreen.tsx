@@ -15,6 +15,7 @@ import {
 } from 'react-native-vision-camera';
 import type {CameraScreenProps} from '../types';
 import {usePermissions} from '../hooks';
+import {normalizeImageOrientation} from '../services/ImageNormalizer';
 
 const CameraScreen: React.FC<CameraScreenProps> = ({navigation}) => {
   const cameraRef = useRef<Camera>(null);
@@ -41,8 +42,9 @@ const CameraScreen: React.FC<CameraScreenProps> = ({navigation}) => {
         flash: 'off',
       });
 
-      const photoUri = `file://${photo.path}`;
-      navigation.replace('Editor', {photoUri});
+      // Normalize the photo to bake EXIF rotation into pixels
+      const normalizedUri = await normalizeImageOrientation(photo.path);
+      navigation.replace('Editor', {photoUri: normalizedUri});
     } catch (error) {
       console.error('Error capturing photo:', error);
       setIsCapturing(false);
@@ -98,7 +100,7 @@ const CameraScreen: React.FC<CameraScreenProps> = ({navigation}) => {
         format={format}
         isActive={true}
         photo={true}
-        orientation="portrait"
+        outputOrientation="device"
       />
 
       {/* Top Controls */}
