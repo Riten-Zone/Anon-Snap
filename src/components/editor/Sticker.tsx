@@ -1,5 +1,5 @@
-import React, {useCallback} from 'react';
-import {View, Text, StyleSheet, TouchableOpacity} from 'react-native';
+import React, {useCallback, useMemo} from 'react';
+import {View, StyleSheet, TouchableOpacity, Text} from 'react-native';
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
@@ -10,6 +10,47 @@ import {
   GestureDetector,
 } from 'react-native-gesture-handler';
 import type {StickerData} from '../../types';
+
+const PIXEL_COLORS = ['#ffffff', '#f0f0f0', '#e0e0e0', '#d0d0d0', '#c0c0c0', '#b0b0b0'];
+
+interface PixelGridProps {
+  width: number;
+  height: number;
+  seed: string;
+}
+
+const PixelGrid: React.FC<PixelGridProps> = ({width, height, seed}) => {
+  const pixelSize = 12;
+  const cols = Math.floor(width / pixelSize);
+  const rows = Math.floor(height / pixelSize);
+
+  const pixels = useMemo(() => {
+    const result: string[] = [];
+    // Create a better hash from seed for more randomness
+    let seedNum = 0;
+    for (let i = 0; i < seed.length; i++) {
+      seedNum = ((seedNum << 5) - seedNum + seed.charCodeAt(i)) | 0;
+    }
+
+    for (let row = 0; row < rows; row++) {
+      for (let col = 0; col < cols; col++) {
+        // Mix row, col, and seed for unique random per pixel
+        const hash = Math.abs((seedNum * 31 + row * 17 + col * 13 + row * col * 7) | 0);
+        const colorIndex = hash % PIXEL_COLORS.length;
+        result.push(PIXEL_COLORS[colorIndex]);
+      }
+    }
+    return result;
+  }, [seed, cols, rows]);
+
+  return (
+    <View style={{flexDirection: 'row', flexWrap: 'wrap', width: cols * pixelSize, height: rows * pixelSize}}>
+      {pixels.map((color, i) => (
+        <View key={i} style={{width: pixelSize, height: pixelSize, backgroundColor: color}} />
+      ))}
+    </View>
+  );
+};
 
 interface StickerProps {
   sticker: StickerData;
@@ -146,7 +187,7 @@ const Sticker: React.FC<StickerProps> = ({
           ]}>
           {sticker.type === 'blur' ? (
             <View style={styles.blurPreview}>
-              <Text style={styles.blurText}>BLUR</Text>
+              <PixelGrid width={sticker.width} height={sticker.height} seed={sticker.id} />
             </View>
           ) : (
             <Text style={styles.emoji}>{sticker.source as string}</Text>
@@ -189,7 +230,8 @@ const styles = StyleSheet.create({
   stickerBox: {
     justifyContent: 'center',
     alignItems: 'center',
-    borderRadius: 8,
+    borderRadius: 9999,
+    overflow: 'hidden',
   },
   selected: {
     borderWidth: 2,
@@ -197,18 +239,13 @@ const styles = StyleSheet.create({
     borderStyle: 'dashed',
   },
   blurPreview: {
-    flex: 1,
     width: '100%',
-    backgroundColor: 'rgba(100, 100, 100, 0.7)',
-    borderRadius: 8,
+    height: '100%',
+    borderRadius: 9999,
+    overflow: 'hidden',
     justifyContent: 'center',
     alignItems: 'center',
-  },
-  blurText: {
-    fontSize: 14,
-    fontWeight: 'bold',
-    color: '#ffffff',
-    opacity: 0.7,
+    backgroundColor: '#e0e0e0',
   },
   emoji: {
     fontSize: 60,
