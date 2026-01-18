@@ -235,7 +235,7 @@ const EditorScreen: React.FC<EditorScreenProps> = ({navigation, route}) => {
   }, [handleExport]);
 
   const imageOffsetX = (SCREEN_WIDTH - displaySize.width) / 2;
-  const imageOffsetY = (SCREEN_HEIGHT - displaySize.height) / 2 - 50; // Offset for toolbar
+  const imageOffsetY = (SCREEN_HEIGHT - displaySize.height) / 2;
 
   return (
     <GestureHandlerRootView style={styles.container}>
