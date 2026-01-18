@@ -100,7 +100,8 @@ const Sticker: React.FC<StickerProps> = ({
   const handleScaleStart = Gesture.Pan()
     .onUpdate(event => {
       'worklet';
-      const newScale = sticker.scale + event.translationY * -0.005;
+      // Positive translationY (drag down) = bigger, negative (drag up) = smaller
+      const newScale = sticker.scale + event.translationY * 0.005;
       scale.value = Math.max(0.2, Math.min(3, newScale));
     })
     .onEnd(() => {

@@ -98,6 +98,7 @@ const CameraScreen: React.FC<CameraScreenProps> = ({navigation}) => {
         format={format}
         isActive={true}
         photo={true}
+        orientation="portrait"
       />
 
       {/* Top Controls */}
