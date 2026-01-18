@@ -7,10 +7,10 @@ import {
   Alert,
   Image,
   Dimensions,
-  TouchableWithoutFeedback,
   TouchableOpacity,
 } from 'react-native';
-import {GestureHandlerRootView} from 'react-native-gesture-handler';
+import {GestureHandlerRootView, Gesture, GestureDetector} from 'react-native-gesture-handler';
+import {runOnJS} from 'react-native-reanimated';
 import type {EditorScreenProps} from '../types';
 import type {StickerData, DetectedFace} from '../types';
 import {useStickers, EMOJI_STICKERS} from '../hooks';
@@ -151,6 +151,13 @@ const EditorScreen: React.FC<EditorScreenProps> = ({navigation, route}) => {
     setShowStickerPicker(false);
   }, [deselectAll]);
 
+  // Background tap gesture - only triggers when tapping empty space
+  const backgroundTapGesture = Gesture.Tap()
+    .onEnd(() => {
+      'worklet';
+      runOnJS(handleBackgroundTap)();
+    });
+
   const handleClose = useCallback(() => {
     Alert.alert(
       'Discard Changes?',
@@ -241,7 +248,7 @@ const EditorScreen: React.FC<EditorScreenProps> = ({navigation, route}) => {
     <GestureHandlerRootView style={styles.container}>
       <StatusBar barStyle="light-content" backgroundColor="#000000" />
 
-      <TouchableWithoutFeedback onPress={handleBackgroundTap}>
+      <GestureDetector gesture={backgroundTapGesture}>
         <View style={styles.canvasContainer}>
           {/* Background image */}
           <Image
@@ -281,7 +288,7 @@ const EditorScreen: React.FC<EditorScreenProps> = ({navigation, route}) => {
             ))}
           </View>
         </View>
-      </TouchableWithoutFeedback>
+      </GestureDetector>
 
       {/* Top Toolbar */}
       <TopToolbar

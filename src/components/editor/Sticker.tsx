@@ -79,7 +79,15 @@ const Sticker: React.FC<StickerProps> = ({
       runOnJS(onUpdate)(sticker.id, {rotation: rotation.value});
     });
 
+  // Tap gesture for selecting sticker
+  const tapGesture = Gesture.Tap()
+    .onEnd(() => {
+      'worklet';
+      runOnJS(onSelect)(sticker.id);
+    });
+
   const composedGestures = Gesture.Simultaneous(
+    tapGesture,
     panGesture,
     Gesture.Simultaneous(pinchGesture, rotationGesture),
   );
