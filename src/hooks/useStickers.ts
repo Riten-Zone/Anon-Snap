@@ -143,6 +143,16 @@ export function useStickers(initialFaces: DetectedFace[] = []) {
     [pendingEmoji, addSticker],
   );
 
+  // Undo last added sticker (removes the most recently added emoji sticker)
+  const undoLastSticker = useCallback(() => {
+    setStickers(prev => {
+      // Find the last emoji sticker (not blur)
+      const lastEmojiIndex = prev.map(s => s.type).lastIndexOf('emoji');
+      if (lastEmojiIndex === -1) return prev;
+      return prev.filter((_, index) => index !== lastEmojiIndex);
+    });
+  }, []);
+
   return {
     stickers,
     selectedStickerId,
@@ -160,5 +170,6 @@ export function useStickers(initialFaces: DetectedFace[] = []) {
     enterAddMode,
     exitAddMode,
     addStickerAtPosition,
+    undoLastSticker,
   };
 }

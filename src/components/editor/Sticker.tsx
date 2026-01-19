@@ -51,7 +51,7 @@ const PixelGrid: React.FC<PixelGridProps> = ({width, height, seed}) => {
   }, [seed, cols, rows]);
 
   return (
-    <View style={{flexDirection: 'row', flexWrap: 'wrap', width: cols * pixelSize, height: rows * pixelSize, opacity: 0.5}}>
+    <View style={{flexDirection: 'row', flexWrap: 'wrap', width: cols * pixelSize, height: rows * pixelSize, backgroundColor: '#808080'}}>
       {pixels.map((color, i) => (
         <View key={i} style={{width: pixelSize, height: pixelSize, backgroundColor: color}} />
       ))}

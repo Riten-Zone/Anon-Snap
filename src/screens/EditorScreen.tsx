@@ -14,6 +14,7 @@ import {runOnJS} from 'react-native-reanimated';
 import type {EditorScreenProps} from '../types';
 import type {StickerData, DetectedFace} from '../types';
 import {useStickers, EMOJI_STICKERS} from '../hooks';
+import {useDrawing} from '../hooks/useDrawing';
 import {detectFacesInImage} from '../services/FaceDetectionService';
 import {saveToGallery} from '../services/GalleryService';
 import {shareImage, shareToTwitter, shareToTelegram} from '../services/ShareService';
@@ -22,6 +23,7 @@ import Sticker from '../components/editor/Sticker';
 import StickerPicker from '../components/editor/StickerPicker';
 import TopToolbar from '../components/editor/TopToolbar';
 import ShareSheet from '../components/share/ShareSheet';
+import DrawingCanvas from '../components/editor/DrawingCanvas';
 
 const {width: SCREEN_WIDTH, height: SCREEN_HEIGHT} = Dimensions.get('window');
 
@@ -52,7 +54,23 @@ const EditorScreen: React.FC<EditorScreenProps> = ({navigation, route}) => {
     enterAddMode,
     exitAddMode,
     addStickerAtPosition,
+    undoLastSticker,
   } = useStickers();
+
+  const {
+    strokes,
+    currentStroke,
+    isDrawingMode,
+    toggleDrawingMode,
+    startStroke,
+    addPoint,
+    endStroke,
+    undoLastStroke,
+  } = useDrawing();
+
+  // Calculate image offset early so it can be used in callbacks
+  const imageOffsetX = (SCREEN_WIDTH - displaySize.width) / 2;
+  const imageOffsetY = (SCREEN_HEIGHT - displaySize.height) / 2;
 
   // Handle image load - get correct dimensions after EXIF orientation is applied
   const handleImageLoad = useCallback((event: {nativeEvent: {source: {width: number; height: number}}}) => {
@@ -149,6 +167,10 @@ const EditorScreen: React.FC<EditorScreenProps> = ({navigation, route}) => {
 
   const handleBackgroundTapWithPosition = useCallback(
     (x: number, y: number) => {
+      if (isDrawingMode) {
+        // Don't handle taps in drawing mode
+        return;
+      }
       if (isAddMode && pendingEmoji) {
         // In add mode, add a new sticker at tap location
         addStickerAtPosition(x, y);
@@ -158,8 +180,31 @@ const EditorScreen: React.FC<EditorScreenProps> = ({navigation, route}) => {
         setShowStickerPicker(false);
       }
     },
-    [isAddMode, pendingEmoji, addStickerAtPosition, deselectAll],
+    [isDrawingMode, isAddMode, pendingEmoji, addStickerAtPosition, deselectAll],
   );
+
+  // Drawing gesture handlers
+  const handleDrawStart = useCallback(
+    (x: number, y: number) => {
+      const adjustedX = x - imageOffsetX;
+      const adjustedY = y - imageOffsetY;
+      startStroke(adjustedX, adjustedY);
+    },
+    [imageOffsetX, imageOffsetY, startStroke],
+  );
+
+  const handleDrawMove = useCallback(
+    (x: number, y: number) => {
+      const adjustedX = x - imageOffsetX;
+      const adjustedY = y - imageOffsetY;
+      addPoint(adjustedX, adjustedY);
+    },
+    [imageOffsetX, imageOffsetY, addPoint],
+  );
+
+  const handleDrawEnd = useCallback(() => {
+    endStroke();
+  }, [endStroke]);
 
   // Background tap gesture - only triggers when tapping empty space
   const backgroundTapGesture = Gesture.Tap()
@@ -167,6 +212,25 @@ const EditorScreen: React.FC<EditorScreenProps> = ({navigation, route}) => {
       'worklet';
       runOnJS(handleBackgroundTapWithPosition)(event.x, event.y);
     });
+
+  // Drawing pan gesture
+  const drawingPanGesture = Gesture.Pan()
+    .enabled(isDrawingMode)
+    .onStart(event => {
+      'worklet';
+      runOnJS(handleDrawStart)(event.x, event.y);
+    })
+    .onUpdate(event => {
+      'worklet';
+      runOnJS(handleDrawMove)(event.x, event.y);
+    })
+    .onEnd(() => {
+      'worklet';
+      runOnJS(handleDrawEnd)();
+    });
+
+  // Combine gestures - drawing takes priority when in drawing mode
+  const combinedGesture = Gesture.Race(drawingPanGesture, backgroundTapGesture);
 
   const handleClose = useCallback(() => {
     Alert.alert(
@@ -194,11 +258,22 @@ const EditorScreen: React.FC<EditorScreenProps> = ({navigation, route}) => {
         height: s.height * scaleY,
       }));
 
+      // Scale drawing strokes to original image coordinates
+      const scaledStrokes = strokes.map(stroke => ({
+        ...stroke,
+        points: stroke.points.map(p => ({
+          x: p.x * scaleX,
+          y: p.y * scaleY,
+        })),
+        brushSize: stroke.brushSize * Math.max(scaleX, scaleY),
+      }));
+
       const outputPath = await compositeImage(
         photoUri.replace('file://', ''),
         scaledStickers,
         imageSize.width,
         imageSize.height,
+        scaledStrokes,
       );
 
       return outputPath;
@@ -208,7 +283,7 @@ const EditorScreen: React.FC<EditorScreenProps> = ({navigation, route}) => {
     } finally {
       setIsExporting(false);
     }
-  }, [photoUri, stickers, imageSize, displaySize]);
+  }, [photoUri, stickers, strokes, imageSize, displaySize]);
 
   const handleSave = useCallback(async () => {
     try {
@@ -251,14 +326,11 @@ const EditorScreen: React.FC<EditorScreenProps> = ({navigation, route}) => {
     }
   }, [handleExport]);
 
-  const imageOffsetX = (SCREEN_WIDTH - displaySize.width) / 2;
-  const imageOffsetY = (SCREEN_HEIGHT - displaySize.height) / 2;
-
   return (
     <GestureHandlerRootView style={styles.container}>
       <StatusBar barStyle="light-content" backgroundColor="#000000" />
 
-      <GestureDetector gesture={backgroundTapGesture}>
+      <GestureDetector gesture={combinedGesture}>
         <View style={styles.canvasContainer}>
           {/* Background image */}
           <Image
@@ -275,6 +347,26 @@ const EditorScreen: React.FC<EditorScreenProps> = ({navigation, route}) => {
             resizeMode="contain"
             onLoad={handleImageLoad}
           />
+
+          {/* Drawing layer */}
+          <View
+            style={[
+              styles.stickersLayer,
+              {
+                width: displaySize.width,
+                height: displaySize.height,
+                left: imageOffsetX,
+                top: imageOffsetY,
+              },
+            ]}
+            pointerEvents="none">
+            <DrawingCanvas
+              strokes={strokes}
+              currentStroke={currentStroke}
+              width={displaySize.width}
+              height={displaySize.height}
+            />
+          </View>
 
           {/* Stickers layer */}
           <View
@@ -307,6 +399,10 @@ const EditorScreen: React.FC<EditorScreenProps> = ({navigation, route}) => {
         onClose={handleClose}
         isAddMode={isAddMode}
         onExitAddMode={exitAddMode}
+        isDrawingMode={isDrawingMode}
+        onToggleDrawing={toggleDrawingMode}
+        onUndo={isDrawingMode ? undoLastStroke : undoLastSticker}
+        canUndo={isDrawingMode ? strokes.length > 0 : stickers.filter(s => s.type === 'emoji').length > 0}
       />
 
       {/* Share button overlay */}

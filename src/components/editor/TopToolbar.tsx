@@ -7,6 +7,10 @@ interface TopToolbarProps {
   onClose: () => void;
   isAddMode: boolean;
   onExitAddMode: () => void;
+  isDrawingMode: boolean;
+  onToggleDrawing: () => void;
+  onUndo: () => void;
+  canUndo: boolean;
 }
 
 const TopToolbar: React.FC<TopToolbarProps> = ({
@@ -15,7 +19,13 @@ const TopToolbar: React.FC<TopToolbarProps> = ({
   onClose,
   isAddMode,
   onExitAddMode,
+  isDrawingMode,
+  onToggleDrawing,
+  onUndo,
+  canUndo,
 }) => {
+  const showUndo = (isAddMode || isDrawingMode) && canUndo;
+
   return (
     <View style={styles.container}>
       <TouchableOpacity style={styles.button} onPress={onClose}>
@@ -23,6 +33,16 @@ const TopToolbar: React.FC<TopToolbarProps> = ({
       </TouchableOpacity>
 
       <View style={styles.rightButtons}>
+        {/* Undo button - only shows when in add/draw mode and there's something to undo */}
+        {showUndo && (
+          <TouchableOpacity
+            style={styles.undoButton}
+            onPress={onUndo}
+            activeOpacity={0.7}>
+            <Text style={styles.undoIcon}>↩</Text>
+          </TouchableOpacity>
+        )}
+
         <TouchableOpacity
           style={styles.toolButton}
           onPress={onSwitchBlur}
@@ -37,6 +57,14 @@ const TopToolbar: React.FC<TopToolbarProps> = ({
           activeOpacity={0.7}>
           <Text style={styles.toolIcon}>😀</Text>
           <Text style={styles.toolLabel}>{isAddMode ? 'Done' : 'Add'}</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={[styles.toolButton, isDrawingMode && styles.toolButtonActive]}
+          onPress={onToggleDrawing}
+          activeOpacity={0.7}>
+          <Text style={styles.toolIcon}>✏️</Text>
+          <Text style={styles.toolLabel}>{isDrawingMode ? 'Done' : 'Draw'}</Text>
         </TouchableOpacity>
       </View>
     </View>
@@ -90,6 +118,18 @@ const styles = StyleSheet.create({
     fontSize: 10,
     color: '#ffffff',
     fontWeight: '500',
+  },
+  undoButton: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  undoIcon: {
+    fontSize: 22,
+    color: '#ffffff',
   },
 });
 
