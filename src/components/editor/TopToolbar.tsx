@@ -13,6 +13,8 @@ interface TopToolbarProps {
   onToggleDrawing: () => void;
   onUndo: () => void;
   canUndo: boolean;
+  pendingEmoji?: string | null;
+  onOpenPicker?: () => void;
 }
 
 const TopToolbar: React.FC<TopToolbarProps> = ({
@@ -25,6 +27,8 @@ const TopToolbar: React.FC<TopToolbarProps> = ({
   onToggleDrawing,
   onUndo,
   canUndo,
+  pendingEmoji,
+  onOpenPicker,
 }) => {
   const isInMode = isAddMode || isDrawingMode;
   const showUndo = isInMode && canUndo;
@@ -40,38 +44,50 @@ const TopToolbar: React.FC<TopToolbarProps> = ({
 
       <View style={styles.rightButtons}>
         {isInMode ? (
-          // Active mode view - undo (if available) and selected tool
-          <View style={styles.activeModeRow}>
-            {/* Undo button - shows to the left of selected tool when available */}
-            {showUndo && (
-              <TouchableOpacity
-                style={styles.undoButton}
-                onPress={onUndo}
-                activeOpacity={0.7}>
-                <Undo2 size={22} color={colors.white} strokeWidth={2} />
-              </TouchableOpacity>
-            )}
+          // Active mode view - undo (if available), selected tool, and emoji preview
+          <>
+            <View style={styles.activeModeRow}>
+              {/* Undo button - shows to the left of selected tool when available */}
+              {showUndo && (
+                <TouchableOpacity
+                  style={styles.undoButton}
+                  onPress={onUndo}
+                  activeOpacity={0.7}>
+                  <Undo2 size={22} color={colors.white} strokeWidth={2} />
+                </TouchableOpacity>
+              )}
 
-            {/* Selected tool button */}
-            {activeMode === 'add' && (
+              {/* Selected tool button */}
+              {activeMode === 'add' && (
+                <TouchableOpacity
+                  style={[styles.toolButton, styles.toolButtonActive]}
+                  onPress={onExitAddMode}
+                  activeOpacity={0.7}>
+                  <Plus size={24} color={colors.black} strokeWidth={1.5} />
+                  <Text style={[styles.toolLabel, styles.toolLabelActive]}>Add</Text>
+                </TouchableOpacity>
+              )}
+              {activeMode === 'draw' && (
+                <TouchableOpacity
+                  style={[styles.toolButton, styles.toolButtonActive]}
+                  onPress={onToggleDrawing}
+                  activeOpacity={0.7}>
+                  <Pencil size={24} color={colors.black} strokeWidth={1.5} />
+                  <Text style={[styles.toolLabel, styles.toolLabelActive]}>Draw</Text>
+                </TouchableOpacity>
+              )}
+            </View>
+
+            {/* Emoji preview - shows below Add button when emoji is selected */}
+            {activeMode === 'add' && pendingEmoji && onOpenPicker && (
               <TouchableOpacity
-                style={[styles.toolButton, styles.toolButtonActive]}
-                onPress={onExitAddMode}
+                style={styles.emojiPreview}
+                onPress={onOpenPicker}
                 activeOpacity={0.7}>
-                <Plus size={24} color={colors.black} strokeWidth={1.5} />
-                <Text style={[styles.toolLabel, styles.toolLabelActive]}>Add</Text>
+                <Text style={styles.emojiText}>{pendingEmoji}</Text>
               </TouchableOpacity>
             )}
-            {activeMode === 'draw' && (
-              <TouchableOpacity
-                style={[styles.toolButton, styles.toolButtonActive]}
-                onPress={onToggleDrawing}
-                activeOpacity={0.7}>
-                <Pencil size={24} color={colors.black} strokeWidth={1.5} />
-                <Text style={[styles.toolLabel, styles.toolLabelActive]}>Draw</Text>
-              </TouchableOpacity>
-            )}
-          </View>
+          </>
         ) : (
           // Default view - all tools listed vertically
           <>
@@ -161,6 +177,17 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(0, 0, 0, 0.5)',
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  emojiPreview: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  emojiText: {
+    fontSize: 28,
   },
 });
 

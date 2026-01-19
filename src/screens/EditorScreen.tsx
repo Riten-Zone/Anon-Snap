@@ -415,6 +415,8 @@ const EditorScreen: React.FC<EditorScreenProps> = ({navigation, route}) => {
         onToggleDrawing={toggleDrawingMode}
         onUndo={isDrawingMode ? undoLastStroke : undoLastSticker}
         canUndo={isDrawingMode ? strokes.length > 0 : stickers.filter(s => s.type === 'emoji').length > 0}
+        pendingEmoji={pendingEmoji}
+        onOpenPicker={() => setShowStickerPicker(true)}
       />
 
       {/* Share button overlay */}
