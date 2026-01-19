@@ -24,18 +24,25 @@ export function useStickers(initialFaces: DetectedFace[] = []) {
 
   // Initialize blur stickers for detected faces
   const initializeBlurStickers = useCallback((faces: DetectedFace[]) => {
-    const blurStickers: StickerData[] = faces.map(face => ({
-      id: generateId(),
-      type: 'blur',
-      source: 'blur',
-      x: face.bounds.x,
-      y: face.bounds.y,
-      width: face.bounds.width,
-      height: face.bounds.height,
-      rotation: 0,
-      scale: 1,
-      isSelected: false,
-    }));
+    const blurStickers: StickerData[] = faces.map(face => {
+      // Make the blur area more oval-shaped (faces are taller than wide)
+      const width = face.bounds.width;
+      const height = face.bounds.height * 1.3; // Extend height for oval shape
+      const y = face.bounds.y - (height - face.bounds.height) / 2; // Center vertically
+
+      return {
+        id: generateId(),
+        type: 'blur',
+        source: 'blur',
+        x: face.bounds.x,
+        y: y,
+        width: width,
+        height: height,
+        rotation: 0,
+        scale: 1,
+        isSelected: false,
+      };
+    });
     setStickers(blurStickers);
   }, []);
 

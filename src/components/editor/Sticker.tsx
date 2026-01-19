@@ -11,7 +11,11 @@ import {
 } from 'react-native-gesture-handler';
 import type {StickerData} from '../../types';
 
-const PIXEL_COLORS = ['#ffffff', '#f0f0f0', '#e0e0e0', '#d0d0d0', '#c0c0c0', '#b0b0b0'];
+const PIXEL_COLORS = [
+  '#ffffff', '#f0f0f0', '#e0e0e0', '#d0d0d0',
+  '#b0b0b0', '#909090', '#707070', '#505050',
+  '#383838', '#202020',
+];
 
 interface PixelGridProps {
   width: number;
@@ -20,31 +24,34 @@ interface PixelGridProps {
 }
 
 const PixelGrid: React.FC<PixelGridProps> = ({width, height, seed}) => {
-  const pixelSize = 12;
+  const pixelSize = 10;
   const cols = Math.floor(width / pixelSize);
   const rows = Math.floor(height / pixelSize);
 
   const pixels = useMemo(() => {
     const result: string[] = [];
-    // Create a better hash from seed for more randomness
+    // Use a simple LCG (Linear Congruential Generator) seeded by sticker id
     let seedNum = 0;
     for (let i = 0; i < seed.length; i++) {
       seedNum = ((seedNum << 5) - seedNum + seed.charCodeAt(i)) | 0;
     }
 
-    for (let row = 0; row < rows; row++) {
-      for (let col = 0; col < cols; col++) {
-        // Mix row, col, and seed for unique random per pixel
-        const hash = Math.abs((seedNum * 31 + row * 17 + col * 13 + row * col * 7) | 0);
-        const colorIndex = hash % PIXEL_COLORS.length;
-        result.push(PIXEL_COLORS[colorIndex]);
-      }
+    // LCG parameters (common values for good randomness)
+    let current = Math.abs(seedNum) || 1;
+    const a = 1664525;
+    const c = 1013904223;
+    const m = Math.pow(2, 32);
+
+    for (let i = 0; i < rows * cols; i++) {
+      current = (a * current + c) % m;
+      const colorIndex = Math.floor((current / m) * PIXEL_COLORS.length);
+      result.push(PIXEL_COLORS[colorIndex]);
     }
     return result;
   }, [seed, cols, rows]);
 
   return (
-    <View style={{flexDirection: 'row', flexWrap: 'wrap', width: cols * pixelSize, height: rows * pixelSize}}>
+    <View style={{flexDirection: 'row', flexWrap: 'wrap', width: cols * pixelSize, height: rows * pixelSize, opacity: 0.5}}>
       {pixels.map((color, i) => (
         <View key={i} style={{width: pixelSize, height: pixelSize, backgroundColor: color}} />
       ))}
