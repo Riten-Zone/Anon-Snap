@@ -6,7 +6,9 @@ import {
   ScrollView,
   TouchableOpacity,
 } from 'react-native';
+import {X} from 'lucide-react-native';
 import {EMOJI_STICKERS} from '../../hooks/useStickers';
+import {colors} from '../../theme';
 
 interface StickerPickerProps {
   visible: boolean;
@@ -26,7 +28,7 @@ const StickerPicker: React.FC<StickerPickerProps> = ({
       <View style={styles.header}>
         <Text style={styles.title}>Add Sticker</Text>
         <TouchableOpacity onPress={onClose} style={styles.closeButton}>
-          <Text style={styles.closeText}>✕</Text>
+          <X size={16} color={colors.white} strokeWidth={2} />
         </TouchableOpacity>
       </View>
       <ScrollView
@@ -57,7 +59,7 @@ const styles = StyleSheet.create({
     bottom: 100,
     left: 0,
     right: 0,
-    backgroundColor: 'rgba(30, 30, 50, 0.95)',
+    backgroundColor: 'rgba(17, 17, 17, 0.98)',
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
     paddingBottom: 20,
@@ -69,24 +71,20 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingVertical: 15,
     borderBottomWidth: 1,
-    borderBottomColor: 'rgba(255, 255, 255, 0.1)',
+    borderBottomColor: colors.gray600,
   },
   title: {
     fontSize: 18,
     fontWeight: '600',
-    color: '#ffffff',
+    color: colors.white,
   },
   closeButton: {
     width: 30,
     height: 30,
     borderRadius: 15,
-    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    backgroundColor: colors.gray700,
     justifyContent: 'center',
     alignItems: 'center',
-  },
-  closeText: {
-    fontSize: 16,
-    color: '#ffffff',
   },
   scrollContent: {
     paddingHorizontal: 10,
@@ -97,7 +95,7 @@ const styles = StyleSheet.create({
     marginHorizontal: 10,
     padding: 10,
     borderRadius: 12,
-    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    backgroundColor: colors.gray700,
     minWidth: 70,
   },
   stickerEmoji: {
@@ -106,7 +104,7 @@ const styles = StyleSheet.create({
   },
   stickerLabel: {
     fontSize: 12,
-    color: '#a0a0a0',
+    color: colors.gray300,
   },
 });
 

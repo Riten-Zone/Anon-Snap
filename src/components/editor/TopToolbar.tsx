@@ -1,5 +1,7 @@
 import React from 'react';
 import {View, Text, StyleSheet, TouchableOpacity} from 'react-native';
+import {X, Undo2, Shuffle, Plus, Pencil} from 'lucide-react-native';
+import {colors} from '../../theme';
 
 interface TopToolbarProps {
   onAddSticker: () => void;
@@ -29,7 +31,7 @@ const TopToolbar: React.FC<TopToolbarProps> = ({
   return (
     <View style={styles.container}>
       <TouchableOpacity style={styles.button} onPress={onClose}>
-        <Text style={styles.buttonText}>✕</Text>
+        <X size={18} color={colors.white} strokeWidth={2} />
       </TouchableOpacity>
 
       <View style={styles.rightButtons}>
@@ -39,7 +41,7 @@ const TopToolbar: React.FC<TopToolbarProps> = ({
             style={styles.undoButton}
             onPress={onUndo}
             activeOpacity={0.7}>
-            <Text style={styles.undoIcon}>↩</Text>
+            <Undo2 size={22} color={colors.white} strokeWidth={2} />
           </TouchableOpacity>
         )}
 
@@ -47,7 +49,7 @@ const TopToolbar: React.FC<TopToolbarProps> = ({
           style={styles.toolButton}
           onPress={onSwitchBlur}
           activeOpacity={0.7}>
-          <Text style={styles.toolIcon}>🎭</Text>
+          <Shuffle size={24} color={colors.white} strokeWidth={1.5} />
           <Text style={styles.toolLabel}>Switch</Text>
         </TouchableOpacity>
 
@@ -55,16 +57,29 @@ const TopToolbar: React.FC<TopToolbarProps> = ({
           style={[styles.toolButton, isAddMode && styles.toolButtonActive]}
           onPress={isAddMode ? onExitAddMode : onAddSticker}
           activeOpacity={0.7}>
-          <Text style={styles.toolIcon}>😀</Text>
-          <Text style={styles.toolLabel}>{isAddMode ? 'Done' : 'Add'}</Text>
+          <Plus
+            size={24}
+            color={isAddMode ? colors.black : colors.white}
+            strokeWidth={1.5}
+          />
+          <Text style={[styles.toolLabel, isAddMode && styles.toolLabelActive]}>
+            {isAddMode ? 'Done' : 'Add'}
+          </Text>
         </TouchableOpacity>
 
         <TouchableOpacity
           style={[styles.toolButton, isDrawingMode && styles.toolButtonActive]}
           onPress={onToggleDrawing}
           activeOpacity={0.7}>
-          <Text style={styles.toolIcon}>✏️</Text>
-          <Text style={styles.toolLabel}>{isDrawingMode ? 'Done' : 'Draw'}</Text>
+          <Pencil
+            size={24}
+            color={isDrawingMode ? colors.black : colors.white}
+            strokeWidth={1.5}
+          />
+          <Text
+            style={[styles.toolLabel, isDrawingMode && styles.toolLabelActive]}>
+            {isDrawingMode ? 'Done' : 'Draw'}
+          </Text>
         </TouchableOpacity>
       </View>
     </View>
@@ -91,10 +106,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-  buttonText: {
-    fontSize: 18,
-    color: '#ffffff',
-  },
   rightButtons: {
     alignItems: 'flex-end',
     gap: 10,
@@ -106,18 +117,18 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
     paddingHorizontal: 12,
     minWidth: 60,
+    gap: 4,
   },
   toolButtonActive: {
-    backgroundColor: '#ff9500',
-  },
-  toolIcon: {
-    fontSize: 24,
-    marginBottom: 2,
+    backgroundColor: colors.white,
   },
   toolLabel: {
     fontSize: 10,
-    color: '#ffffff',
+    color: colors.white,
     fontWeight: '500',
+  },
+  toolLabelActive: {
+    color: colors.black,
   },
   undoButton: {
     width: 44,
@@ -126,10 +137,6 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(0, 0, 0, 0.5)',
     justifyContent: 'center',
     alignItems: 'center',
-  },
-  undoIcon: {
-    fontSize: 22,
-    color: '#ffffff',
   },
 });
 

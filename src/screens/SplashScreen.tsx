@@ -6,7 +6,9 @@ import {
   TouchableOpacity,
   StatusBar,
 } from 'react-native';
+import {Fingerprint} from 'lucide-react-native';
 import type {SplashScreenProps} from '../types';
+import {colors} from '../theme';
 
 const SplashScreen: React.FC<SplashScreenProps> = ({navigation}) => {
   useEffect(() => {
@@ -26,9 +28,9 @@ const SplashScreen: React.FC<SplashScreenProps> = ({navigation}) => {
       style={styles.container}
       activeOpacity={1}
       onPress={handlePress}>
-      <StatusBar barStyle="light-content" backgroundColor="#1a1a2e" />
+      <StatusBar barStyle="light-content" backgroundColor={colors.black} />
       <View style={styles.logoContainer}>
-        <Text style={styles.logoEmoji}>🎭</Text>
+        <Fingerprint size={80} color={colors.white} strokeWidth={1.5} />
         <Text style={styles.title}>Anon Snap</Text>
         <Text style={styles.subtitle}>Take Anonymous Photos</Text>
       </View>
@@ -40,32 +42,29 @@ const SplashScreen: React.FC<SplashScreenProps> = ({navigation}) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#1a1a2e',
+    backgroundColor: colors.black,
     justifyContent: 'center',
     alignItems: 'center',
   },
   logoContainer: {
     alignItems: 'center',
-  },
-  logoEmoji: {
-    fontSize: 80,
-    marginBottom: 20,
+    gap: 16,
   },
   title: {
     fontSize: 36,
     fontWeight: 'bold',
-    color: '#ffffff',
-    marginBottom: 10,
+    color: colors.white,
+    marginTop: 4,
   },
   subtitle: {
     fontSize: 18,
-    color: '#a0a0a0',
+    color: colors.gray300,
   },
   tapHint: {
     position: 'absolute',
     bottom: 50,
     fontSize: 14,
-    color: '#606080',
+    color: colors.gray500,
   },
 });
 

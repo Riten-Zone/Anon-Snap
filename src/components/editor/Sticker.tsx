@@ -1,5 +1,5 @@
 import React, {useCallback, useMemo} from 'react';
-import {View, StyleSheet, TouchableOpacity, Text} from 'react-native';
+import {View, StyleSheet, TouchableOpacity} from 'react-native';
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
@@ -9,7 +9,10 @@ import {
   Gesture,
   GestureDetector,
 } from 'react-native-gesture-handler';
+import {X, RotateCw} from 'lucide-react-native';
+import {Text} from 'react-native';
 import type {StickerData} from '../../types';
+import {colors} from '../../theme';
 
 const PIXEL_COLORS = [
   '#ffffff', '#f0f0f0', '#e0e0e0', '#d0d0d0',
@@ -51,7 +54,7 @@ const PixelGrid: React.FC<PixelGridProps> = ({width, height, seed}) => {
   }, [seed, cols, rows]);
 
   return (
-    <View style={{flexDirection: 'row', flexWrap: 'wrap', width: cols * pixelSize, height: rows * pixelSize, backgroundColor: '#808080'}}>
+    <View style={{flexDirection: 'row', flexWrap: 'wrap', width: cols * pixelSize, height: rows * pixelSize, backgroundColor: colors.gray400}}>
       {pixels.map((color, i) => (
         <View key={i} style={{width: pixelSize, height: pixelSize, backgroundColor: color}} />
       ))}
@@ -207,13 +210,13 @@ const Sticker: React.FC<StickerProps> = ({
             <TouchableOpacity
               style={[styles.controlButton, styles.deleteButton]}
               onPress={handleDelete}>
-              <Text style={styles.controlText}>✕</Text>
+              <X size={14} color={colors.white} strokeWidth={2.5} />
             </TouchableOpacity>
 
             {/* Rotate handle */}
             <GestureDetector gesture={handleRotateStart}>
               <Animated.View style={[styles.controlButton, styles.rotateButton]}>
-                <Text style={styles.controlText}>↻</Text>
+                <RotateCw size={14} color={colors.black} strokeWidth={2.5} />
               </Animated.View>
             </GestureDetector>
 
@@ -242,7 +245,7 @@ const styles = StyleSheet.create({
   },
   selected: {
     borderWidth: 2,
-    borderColor: '#ff9500',
+    borderColor: colors.white,
     borderStyle: 'dashed',
   },
   blurPreview: {
@@ -252,7 +255,7 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#e0e0e0',
+    backgroundColor: colors.gray300,
   },
   emoji: {
     fontSize: 60,
@@ -262,10 +265,10 @@ const styles = StyleSheet.create({
     width: 28,
     height: 28,
     borderRadius: 14,
-    backgroundColor: '#ff9500',
+    backgroundColor: colors.white,
     justifyContent: 'center',
     alignItems: 'center',
-    shadowColor: '#000',
+    shadowColor: colors.black,
     shadowOffset: {width: 0, height: 2},
     shadowOpacity: 0.3,
     shadowRadius: 3,
@@ -274,7 +277,7 @@ const styles = StyleSheet.create({
   deleteButton: {
     top: -14,
     left: -14,
-    backgroundColor: '#ff3b30',
+    backgroundColor: colors.danger,
   },
   rotateButton: {
     top: -14,
@@ -284,16 +287,11 @@ const styles = StyleSheet.create({
     bottom: -14,
     right: -14,
   },
-  controlText: {
-    fontSize: 14,
-    color: '#ffffff',
-    fontWeight: 'bold',
-  },
   scaleCircle: {
     width: 12,
     height: 12,
     borderRadius: 6,
-    backgroundColor: '#ffffff',
+    backgroundColor: colors.black,
   },
 });
 

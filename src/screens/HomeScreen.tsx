@@ -5,10 +5,11 @@ import {
   StyleSheet,
   TouchableOpacity,
   StatusBar,
-  Alert,
 } from 'react-native';
+import {Fingerprint, Image, Camera} from 'lucide-react-native';
 import type {HomeScreenProps} from '../types';
 import {pickImageFromGallery} from '../services';
+import {colors} from '../theme';
 
 const HomeScreen: React.FC<HomeScreenProps> = ({navigation}) => {
   const handleImportPhoto = async () => {
@@ -24,10 +25,10 @@ const HomeScreen: React.FC<HomeScreenProps> = ({navigation}) => {
 
   return (
     <View style={styles.container}>
-      <StatusBar barStyle="light-content" backgroundColor="#1a1a2e" />
+      <StatusBar barStyle="light-content" backgroundColor={colors.black} />
 
       <View style={styles.header}>
-        <Text style={styles.logoEmoji}>🎭</Text>
+        <Fingerprint size={50} color={colors.white} strokeWidth={1.5} />
         <Text style={styles.title}>Anon Snap</Text>
         <Text style={styles.subtitle}>Protect your privacy</Text>
       </View>
@@ -37,7 +38,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({navigation}) => {
           style={[styles.button, styles.importButton]}
           onPress={handleImportPhoto}
           activeOpacity={0.8}>
-          <Text style={styles.buttonEmoji}>🖼️</Text>
+          <Image size={40} color={colors.white} strokeWidth={1.5} />
           <Text style={styles.buttonText}>Import Photo</Text>
           <Text style={styles.buttonHint}>Choose from your gallery</Text>
         </TouchableOpacity>
@@ -46,9 +47,9 @@ const HomeScreen: React.FC<HomeScreenProps> = ({navigation}) => {
           style={[styles.button, styles.cameraButton]}
           onPress={handleTakePhoto}
           activeOpacity={0.8}>
-          <Text style={styles.buttonEmoji}>📸</Text>
-          <Text style={styles.buttonText}>Take Photo</Text>
-          <Text style={styles.buttonHint}>Use camera to capture</Text>
+          <Camera size={40} color={colors.black} strokeWidth={1.5} />
+          <Text style={styles.cameraButtonText}>Take Photo</Text>
+          <Text style={styles.cameraButtonHint}>Use camera to capture</Text>
         </TouchableOpacity>
       </View>
 
@@ -63,27 +64,24 @@ const HomeScreen: React.FC<HomeScreenProps> = ({navigation}) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#1a1a2e',
+    backgroundColor: colors.black,
     paddingHorizontal: 24,
   },
   header: {
     alignItems: 'center',
     marginTop: 60,
     marginBottom: 40,
-  },
-  logoEmoji: {
-    fontSize: 50,
-    marginBottom: 12,
+    gap: 12,
   },
   title: {
     fontSize: 28,
     fontWeight: 'bold',
-    color: '#ffffff',
-    marginBottom: 8,
+    color: colors.white,
+    marginTop: 4,
   },
   subtitle: {
     fontSize: 16,
-    color: '#a0a0a0',
+    color: colors.gray300,
   },
   buttonContainer: {
     flex: 1,
@@ -94,33 +92,38 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     padding: 24,
     alignItems: 'center',
+    gap: 12,
   },
   importButton: {
-    backgroundColor: '#2d2d44',
+    backgroundColor: colors.gray700,
     borderWidth: 2,
-    borderColor: '#3d3d5c',
+    borderColor: colors.gray600,
   },
   cameraButton: {
-    backgroundColor: '#4a3f8a',
-  },
-  buttonEmoji: {
-    fontSize: 40,
-    marginBottom: 12,
+    backgroundColor: colors.white,
   },
   buttonText: {
     fontSize: 22,
     fontWeight: '600',
-    color: '#ffffff',
-    marginBottom: 4,
+    color: colors.white,
   },
   buttonHint: {
     fontSize: 14,
-    color: '#a0a0a0',
+    color: colors.gray300,
+  },
+  cameraButtonText: {
+    fontSize: 22,
+    fontWeight: '600',
+    color: colors.black,
+  },
+  cameraButtonHint: {
+    fontSize: 14,
+    color: colors.gray500,
   },
   privacyNote: {
     textAlign: 'center',
     fontSize: 12,
-    color: '#606080',
+    color: colors.gray500,
     marginBottom: 40,
     lineHeight: 18,
   },

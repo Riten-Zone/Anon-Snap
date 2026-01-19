@@ -13,9 +13,11 @@ import {
   useCameraFormat,
   PhotoFile,
 } from 'react-native-vision-camera';
+import {X, RefreshCw} from 'lucide-react-native';
 import type {CameraScreenProps} from '../types';
 import {usePermissions} from '../hooks';
 import {normalizeImageOrientation} from '../services/ImageNormalizer';
+import {colors} from '../theme';
 
 const CameraScreen: React.FC<CameraScreenProps> = ({navigation}) => {
   const cameraRef = useRef<Camera>(null);
@@ -65,7 +67,7 @@ const CameraScreen: React.FC<CameraScreenProps> = ({navigation}) => {
   if (!hasCameraPermission) {
     return (
       <View style={styles.permissionContainer}>
-        <StatusBar barStyle="light-content" backgroundColor="#000000" />
+        <StatusBar barStyle="light-content" backgroundColor={colors.black} />
         <Text style={styles.permissionText}>Camera permission required</Text>
         <TouchableOpacity
           style={styles.permissionButton}
@@ -82,8 +84,8 @@ const CameraScreen: React.FC<CameraScreenProps> = ({navigation}) => {
   if (!device) {
     return (
       <View style={styles.permissionContainer}>
-        <StatusBar barStyle="light-content" backgroundColor="#000000" />
-        <ActivityIndicator size="large" color="#ffffff" />
+        <StatusBar barStyle="light-content" backgroundColor={colors.black} />
+        <ActivityIndicator size="large" color={colors.white} />
         <Text style={styles.permissionText}>Loading camera...</Text>
       </View>
     );
@@ -91,7 +93,7 @@ const CameraScreen: React.FC<CameraScreenProps> = ({navigation}) => {
 
   return (
     <View style={styles.container}>
-      <StatusBar barStyle="light-content" backgroundColor="#000000" />
+      <StatusBar barStyle="light-content" backgroundColor={colors.black} />
 
       <Camera
         ref={cameraRef}
@@ -106,11 +108,11 @@ const CameraScreen: React.FC<CameraScreenProps> = ({navigation}) => {
       {/* Top Controls */}
       <View style={styles.topControls}>
         <TouchableOpacity style={styles.closeButton} onPress={handleBack}>
-          <Text style={styles.closeButtonText}>✕</Text>
+          <X size={20} color={colors.white} strokeWidth={2} />
         </TouchableOpacity>
 
         <TouchableOpacity style={styles.flipButton} onPress={handleFlipCamera}>
-          <Text style={styles.flipButtonText}>🔄</Text>
+          <RefreshCw size={22} color={colors.white} strokeWidth={2} />
         </TouchableOpacity>
       </View>
 
@@ -122,7 +124,7 @@ const CameraScreen: React.FC<CameraScreenProps> = ({navigation}) => {
           disabled={isCapturing}
           activeOpacity={0.7}>
           {isCapturing ? (
-            <ActivityIndicator size="small" color="#1a1a2e" />
+            <ActivityIndicator size="small" color={colors.black} />
           ) : (
             <View style={styles.captureButtonInner} />
           )}
@@ -135,24 +137,24 @@ const CameraScreen: React.FC<CameraScreenProps> = ({navigation}) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#000000',
+    backgroundColor: colors.black,
   },
   permissionContainer: {
     flex: 1,
-    backgroundColor: '#1a1a2e',
+    backgroundColor: colors.black,
     justifyContent: 'center',
     alignItems: 'center',
     padding: 24,
   },
   permissionText: {
     fontSize: 18,
-    color: '#ffffff',
+    color: colors.white,
     textAlign: 'center',
     marginTop: 16,
     marginBottom: 24,
   },
   permissionButton: {
-    backgroundColor: '#4a3f8a',
+    backgroundColor: colors.white,
     paddingHorizontal: 24,
     paddingVertical: 12,
     borderRadius: 12,
@@ -160,7 +162,7 @@ const styles = StyleSheet.create({
   },
   permissionButtonText: {
     fontSize: 16,
-    color: '#ffffff',
+    color: colors.black,
     fontWeight: '600',
   },
   backButton: {
@@ -169,7 +171,7 @@ const styles = StyleSheet.create({
   },
   backButtonText: {
     fontSize: 16,
-    color: '#a0a0a0',
+    color: colors.gray300,
   },
   topControls: {
     position: 'absolute',
@@ -188,10 +190,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-  closeButtonText: {
-    fontSize: 20,
-    color: '#ffffff',
-  },
   flipButton: {
     width: 44,
     height: 44,
@@ -199,9 +197,6 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(0, 0, 0, 0.5)',
     justifyContent: 'center',
     alignItems: 'center',
-  },
-  flipButtonText: {
-    fontSize: 22,
   },
   bottomControls: {
     position: 'absolute',
@@ -214,7 +209,7 @@ const styles = StyleSheet.create({
     width: 80,
     height: 80,
     borderRadius: 40,
-    backgroundColor: '#ffffff',
+    backgroundColor: colors.white,
     justifyContent: 'center',
     alignItems: 'center',
     borderWidth: 4,
@@ -227,7 +222,7 @@ const styles = StyleSheet.create({
     width: 64,
     height: 64,
     borderRadius: 32,
-    backgroundColor: '#ffffff',
+    backgroundColor: colors.white,
   },
 });
 

@@ -7,6 +7,8 @@ import {
   Modal,
   ActivityIndicator,
 } from 'react-native';
+import {Download, Send, Share2, MessageCircle} from 'lucide-react-native';
+import {colors} from '../../theme';
 
 interface ShareSheetProps {
   visible: boolean;
@@ -45,7 +47,7 @@ const ShareSheet: React.FC<ShareSheetProps> = ({
 
           {isLoading ? (
             <View style={styles.loadingContainer}>
-              <ActivityIndicator size="large" color="#4a3f8a" />
+              <ActivityIndicator size="large" color={colors.white} />
               <Text style={styles.loadingText}>Processing image...</Text>
             </View>
           ) : (
@@ -54,7 +56,7 @@ const ShareSheet: React.FC<ShareSheetProps> = ({
                 <TouchableOpacity
                   style={[styles.mainButton, styles.saveButton]}
                   onPress={onSave}>
-                  <Text style={styles.mainButtonIcon}>💾</Text>
+                  <Download size={24} color={colors.black} strokeWidth={2} />
                   <Text style={styles.mainButtonText}>Save to Gallery</Text>
                 </TouchableOpacity>
               </View>
@@ -65,21 +67,21 @@ const ShareSheet: React.FC<ShareSheetProps> = ({
                 <TouchableOpacity
                   style={styles.shareButton}
                   onPress={onShareTwitter}>
-                  <Text style={styles.shareIcon}>🐦</Text>
+                  <MessageCircle size={28} color={colors.white} strokeWidth={1.5} />
                   <Text style={styles.shareLabel}>Twitter</Text>
                 </TouchableOpacity>
 
                 <TouchableOpacity
                   style={styles.shareButton}
                   onPress={onShareTelegram}>
-                  <Text style={styles.shareIcon}>✈️</Text>
+                  <Send size={28} color={colors.white} strokeWidth={1.5} />
                   <Text style={styles.shareLabel}>Telegram</Text>
                 </TouchableOpacity>
 
                 <TouchableOpacity
                   style={styles.shareButton}
                   onPress={onShareOther}>
-                  <Text style={styles.shareIcon}>📤</Text>
+                  <Share2 size={28} color={colors.white} strokeWidth={1.5} />
                   <Text style={styles.shareLabel}>Other</Text>
                 </TouchableOpacity>
               </View>
@@ -105,7 +107,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(0, 0, 0, 0.5)',
   },
   sheet: {
-    backgroundColor: '#1a1a2e',
+    backgroundColor: colors.gray900,
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
     paddingHorizontal: 24,
@@ -115,7 +117,7 @@ const styles = StyleSheet.create({
   handle: {
     width: 40,
     height: 4,
-    backgroundColor: '#4a4a6a',
+    backgroundColor: colors.gray500,
     borderRadius: 2,
     alignSelf: 'center',
     marginBottom: 20,
@@ -123,7 +125,7 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 22,
     fontWeight: 'bold',
-    color: '#ffffff',
+    color: colors.white,
     textAlign: 'center',
     marginBottom: 24,
   },
@@ -134,7 +136,7 @@ const styles = StyleSheet.create({
   loadingText: {
     marginTop: 16,
     fontSize: 16,
-    color: '#a0a0a0',
+    color: colors.gray300,
   },
   mainOptions: {
     marginBottom: 24,
@@ -148,19 +150,16 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   saveButton: {
-    backgroundColor: '#4a3f8a',
-  },
-  mainButtonIcon: {
-    fontSize: 24,
+    backgroundColor: colors.white,
   },
   mainButtonText: {
     fontSize: 18,
     fontWeight: '600',
-    color: '#ffffff',
+    color: colors.black,
   },
   sectionTitle: {
     fontSize: 14,
-    color: '#808090',
+    color: colors.gray400,
     marginBottom: 12,
     textTransform: 'uppercase',
     letterSpacing: 1,
@@ -174,16 +173,13 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     padding: 16,
     borderRadius: 16,
-    backgroundColor: '#2d2d44',
+    backgroundColor: colors.gray700,
     minWidth: 90,
-  },
-  shareIcon: {
-    fontSize: 28,
-    marginBottom: 8,
+    gap: 8,
   },
   shareLabel: {
     fontSize: 14,
-    color: '#ffffff',
+    color: colors.white,
   },
   cancelButton: {
     padding: 16,
@@ -191,7 +187,7 @@ const styles = StyleSheet.create({
   },
   cancelText: {
     fontSize: 16,
-    color: '#808090',
+    color: colors.gray400,
   },
 });
 
