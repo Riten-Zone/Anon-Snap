@@ -122,11 +122,19 @@ export function useStickers(initialFaces: DetectedFace[] = []) {
     setStickers(prev => prev.map(s => ({...s, isSelected: false})));
   }, []);
 
-  // Enter add mode with selected emoji
-  const enterAddMode = useCallback((emoji: string) => {
-    setPendingEmoji(emoji);
+  // Enter add mode (without emoji yet - picker will be shown)
+  const enterAddMode = useCallback(() => {
     setIsAddMode(true);
   }, []);
+
+  // Add sticker at center of screen and set as pending for more placements
+  const addStickerAtCenter = useCallback(
+    (emoji: string, centerX: number, centerY: number) => {
+      addSticker(emoji, centerX, centerY);
+      setPendingEmoji(emoji); // Set as pending so tapping screen adds more
+    },
+    [addSticker],
+  );
 
   // Exit add mode
   const exitAddMode = useCallback(() => {
@@ -170,6 +178,7 @@ export function useStickers(initialFaces: DetectedFace[] = []) {
     enterAddMode,
     exitAddMode,
     addStickerAtPosition,
+    addStickerAtCenter,
     undoLastSticker,
   };
 }

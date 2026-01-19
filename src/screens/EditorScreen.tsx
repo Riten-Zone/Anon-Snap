@@ -53,6 +53,7 @@ const EditorScreen: React.FC<EditorScreenProps> = ({navigation, route}) => {
     deselectAll,
     enterAddMode,
     exitAddMode,
+    addStickerAtCenter,
     addStickerAtPosition,
     undoLastSticker,
   } = useStickers();
@@ -145,12 +146,21 @@ const EditorScreen: React.FC<EditorScreenProps> = ({navigation, route}) => {
     [updateStickerPosition, updateStickerScale, updateStickerRotation],
   );
 
-  const handleAddSticker = useCallback(
+  // Called when tapping Add button - enter mode and show picker
+  const handleOpenAddMode = useCallback(() => {
+    enterAddMode();
+    setShowStickerPicker(true);
+  }, [enterAddMode]);
+
+  // Called when selecting an emoji from picker - place at center, keep picker open
+  const handleSelectEmoji = useCallback(
     (emoji: string) => {
-      enterAddMode(emoji);
-      setShowStickerPicker(false);
+      const centerX = displaySize.width / 2;
+      const centerY = displaySize.height / 2;
+      addStickerAtCenter(emoji, centerX, centerY);
+      // Keep picker open so user can add more emojis
     },
-    [enterAddMode],
+    [displaySize, addStickerAtCenter],
   );
 
   const handleSwitchBlur = useCallback(() => {
@@ -172,15 +182,17 @@ const EditorScreen: React.FC<EditorScreenProps> = ({navigation, route}) => {
         return;
       }
       if (isAddMode && pendingEmoji) {
-        // In add mode, add a new sticker at tap location
-        addStickerAtPosition(x, y);
+        // Adjust for image layer offset
+        const adjustedX = x - imageOffsetX;
+        const adjustedY = y - imageOffsetY;
+        addStickerAtPosition(adjustedX, adjustedY);
       } else {
         // Normal mode, deselect all
         deselectAll();
         setShowStickerPicker(false);
       }
     },
-    [isDrawingMode, isAddMode, pendingEmoji, addStickerAtPosition, deselectAll],
+    [isDrawingMode, isAddMode, pendingEmoji, addStickerAtPosition, deselectAll, imageOffsetX, imageOffsetY],
   );
 
   // Drawing gesture handlers
@@ -394,7 +406,7 @@ const EditorScreen: React.FC<EditorScreenProps> = ({navigation, route}) => {
 
       {/* Top Toolbar */}
       <TopToolbar
-        onAddSticker={() => setShowStickerPicker(true)}
+        onAddSticker={handleOpenAddMode}
         onSwitchBlur={handleSwitchBlur}
         onClose={handleClose}
         isAddMode={isAddMode}
@@ -417,7 +429,7 @@ const EditorScreen: React.FC<EditorScreenProps> = ({navigation, route}) => {
       <StickerPicker
         visible={showStickerPicker}
         onClose={() => setShowStickerPicker(false)}
-        onSelectSticker={handleAddSticker}
+        onSelectSticker={handleSelectEmoji}
       />
 
       {/* Share Sheet */}

@@ -1,6 +1,6 @@
 import React from 'react';
 import {View, Text, StyleSheet, TouchableOpacity} from 'react-native';
-import {X, Undo2, Shuffle, Plus, Pencil} from 'lucide-react-native';
+import {ChevronLeft, Undo2, Shuffle, Plus, Pencil} from 'lucide-react-native';
 import {colors} from '../../theme';
 
 interface TopToolbarProps {
@@ -26,61 +26,80 @@ const TopToolbar: React.FC<TopToolbarProps> = ({
   onUndo,
   canUndo,
 }) => {
-  const showUndo = (isAddMode || isDrawingMode) && canUndo;
+  const isInMode = isAddMode || isDrawingMode;
+  const showUndo = isInMode && canUndo;
+
+  // Determine which mode is active
+  const activeMode = isDrawingMode ? 'draw' : isAddMode ? 'add' : null;
 
   return (
     <View style={styles.container}>
       <TouchableOpacity style={styles.button} onPress={onClose}>
-        <X size={18} color={colors.white} strokeWidth={2} />
+        <ChevronLeft size={24} color={colors.white} strokeWidth={2} />
       </TouchableOpacity>
 
       <View style={styles.rightButtons}>
-        {/* Undo button - only shows when in add/draw mode and there's something to undo */}
-        {showUndo && (
-          <TouchableOpacity
-            style={styles.undoButton}
-            onPress={onUndo}
-            activeOpacity={0.7}>
-            <Undo2 size={22} color={colors.white} strokeWidth={2} />
-          </TouchableOpacity>
+        {isInMode ? (
+          // Active mode view - undo (if available) and selected tool
+          <View style={styles.activeModeRow}>
+            {/* Undo button - shows to the left of selected tool when available */}
+            {showUndo && (
+              <TouchableOpacity
+                style={styles.undoButton}
+                onPress={onUndo}
+                activeOpacity={0.7}>
+                <Undo2 size={22} color={colors.white} strokeWidth={2} />
+              </TouchableOpacity>
+            )}
+
+            {/* Selected tool button */}
+            {activeMode === 'add' && (
+              <TouchableOpacity
+                style={[styles.toolButton, styles.toolButtonActive]}
+                onPress={onExitAddMode}
+                activeOpacity={0.7}>
+                <Plus size={24} color={colors.black} strokeWidth={1.5} />
+                <Text style={[styles.toolLabel, styles.toolLabelActive]}>Add</Text>
+              </TouchableOpacity>
+            )}
+            {activeMode === 'draw' && (
+              <TouchableOpacity
+                style={[styles.toolButton, styles.toolButtonActive]}
+                onPress={onToggleDrawing}
+                activeOpacity={0.7}>
+                <Pencil size={24} color={colors.black} strokeWidth={1.5} />
+                <Text style={[styles.toolLabel, styles.toolLabelActive]}>Draw</Text>
+              </TouchableOpacity>
+            )}
+          </View>
+        ) : (
+          // Default view - all tools listed vertically
+          <>
+            <TouchableOpacity
+              style={styles.toolButton}
+              onPress={onSwitchBlur}
+              activeOpacity={0.7}>
+              <Shuffle size={24} color={colors.white} strokeWidth={1.5} />
+              <Text style={styles.toolLabel}>Switch</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={styles.toolButton}
+              onPress={onAddSticker}
+              activeOpacity={0.7}>
+              <Plus size={24} color={colors.white} strokeWidth={1.5} />
+              <Text style={styles.toolLabel}>Add</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={styles.toolButton}
+              onPress={onToggleDrawing}
+              activeOpacity={0.7}>
+              <Pencil size={24} color={colors.white} strokeWidth={1.5} />
+              <Text style={styles.toolLabel}>Draw</Text>
+            </TouchableOpacity>
+          </>
         )}
-
-        <TouchableOpacity
-          style={styles.toolButton}
-          onPress={onSwitchBlur}
-          activeOpacity={0.7}>
-          <Shuffle size={24} color={colors.white} strokeWidth={1.5} />
-          <Text style={styles.toolLabel}>Switch</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          style={[styles.toolButton, isAddMode && styles.toolButtonActive]}
-          onPress={isAddMode ? onExitAddMode : onAddSticker}
-          activeOpacity={0.7}>
-          <Plus
-            size={24}
-            color={isAddMode ? colors.black : colors.white}
-            strokeWidth={1.5}
-          />
-          <Text style={[styles.toolLabel, isAddMode && styles.toolLabelActive]}>
-            {isAddMode ? 'Done' : 'Add'}
-          </Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          style={[styles.toolButton, isDrawingMode && styles.toolButtonActive]}
-          onPress={onToggleDrawing}
-          activeOpacity={0.7}>
-          <Pencil
-            size={24}
-            color={isDrawingMode ? colors.black : colors.white}
-            strokeWidth={1.5}
-          />
-          <Text
-            style={[styles.toolLabel, isDrawingMode && styles.toolLabelActive]}>
-            {isDrawingMode ? 'Done' : 'Draw'}
-          </Text>
-        </TouchableOpacity>
       </View>
     </View>
   );
@@ -108,6 +127,11 @@ const styles = StyleSheet.create({
   },
   rightButtons: {
     alignItems: 'flex-end',
+    gap: 10,
+  },
+  activeModeRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
     gap: 10,
   },
   toolButton: {
