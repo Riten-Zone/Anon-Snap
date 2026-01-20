@@ -65,6 +65,8 @@ const EditorScreen: React.FC<EditorScreenProps> = ({navigation, route}) => {
     addStickerAtCenter,
     addStickerAtPosition,
     undoLastSticker,
+    redoLastSticker,
+    undoneStickers,
   } = useStickers();
 
   const {
@@ -446,6 +448,8 @@ const EditorScreen: React.FC<EditorScreenProps> = ({navigation, route}) => {
         onToggleDrawing={toggleDrawingMode}
         onUndo={isDrawingMode ? undoLastStroke : undoLastSticker}
         canUndo={isDrawingMode ? strokes.length > 0 : stickers.filter(s => s.type === 'image').length > 0}
+        onRedo={redoLastSticker}
+        canRedo={undoneStickers.length > 0}
         pendingSticker={pendingSticker}
         onOpenPicker={() => setShowStickerPicker(true)}
       />

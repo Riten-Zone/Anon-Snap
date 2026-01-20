@@ -18,6 +18,7 @@ export function useStickers(initialFaces: DetectedFace[] = []) {
   const [isSwitchMode, setIsSwitchMode] = useState(false);
   const [pendingSticker, setPendingSticker] = useState<{source: number; type: 'image' | 'blur'} | null>(null);
   const [largestFaceSize, setLargestFaceSize] = useState<{width: number; height: number}>({width: 100, height: 100});
+  const [undoneStickers, setUndoneStickers] = useState<StickerData[]>([]);
 
   // Initialize stickers for detected faces (uses hypurr13 by default)
   const initializeBlurStickers = useCallback((faces: DetectedFace[]) => {
@@ -195,7 +196,20 @@ export function useStickers(initialFaces: DetectedFace[] = []) {
       // Find the last image sticker (not blur)
       const lastImageIndex = prev.map(s => s.type).lastIndexOf('image');
       if (lastImageIndex === -1) return prev;
+      // Save the undone sticker for redo
+      const undoneSticker = prev[lastImageIndex];
+      setUndoneStickers(undone => [...undone, undoneSticker]);
       return prev.filter((_, index) => index !== lastImageIndex);
+    });
+  }, []);
+
+  // Redo last undone sticker
+  const redoLastSticker = useCallback(() => {
+    setUndoneStickers(prev => {
+      if (prev.length === 0) return prev;
+      const stickerToRestore = prev[prev.length - 1];
+      setStickers(stickers => [...stickers, stickerToRestore]);
+      return prev.slice(0, -1);
     });
   }, []);
 
@@ -223,5 +237,7 @@ export function useStickers(initialFaces: DetectedFace[] = []) {
     addStickerAtPosition,
     addStickerAtCenter,
     undoLastSticker,
+    redoLastSticker,
+    undoneStickers,
   };
 }

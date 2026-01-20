@@ -1,6 +1,6 @@
 import React from 'react';
 import {View, Text, StyleSheet, TouchableOpacity, Image} from 'react-native';
-import {ChevronLeft, Undo2, Shuffle, Plus, Pencil} from 'lucide-react-native';
+import {ChevronLeft, Undo2, Redo2, Shuffle, Plus, Pencil} from 'lucide-react-native';
 import {colors} from '../../theme';
 
 interface TopToolbarProps {
@@ -15,6 +15,8 @@ interface TopToolbarProps {
   onToggleDrawing: () => void;
   onUndo: () => void;
   canUndo: boolean;
+  onRedo?: () => void;
+  canRedo?: boolean;
   pendingSticker?: {source: number; type: 'image' | 'blur'} | null;
   onOpenPicker?: () => void;
 }
@@ -31,11 +33,14 @@ const TopToolbar: React.FC<TopToolbarProps> = ({
   onToggleDrawing,
   onUndo,
   canUndo,
+  onRedo,
+  canRedo,
   pendingSticker,
   onOpenPicker,
 }) => {
   const isInMode = isAddMode || isDrawingMode || isSwitchMode;
   const showUndo = (isAddMode || isDrawingMode) && canUndo;
+  const showRedo = isAddMode && canRedo;
 
   // Determine which mode is active
   const activeMode = isDrawingMode ? 'draw' : isAddMode ? 'add' : isSwitchMode ? 'switch' : null;
@@ -71,6 +76,16 @@ const TopToolbar: React.FC<TopToolbarProps> = ({
                   onPress={onUndo}
                   activeOpacity={0.7}>
                   <Undo2 size={22} color={colors.white} strokeWidth={2} />
+                </TouchableOpacity>
+              )}
+
+              {/* Redo button - shows to the right of undo when available (Add mode only) */}
+              {showRedo && onRedo && (
+                <TouchableOpacity
+                  style={styles.undoButton}
+                  onPress={onRedo}
+                  activeOpacity={0.7}>
+                  <Redo2 size={22} color={colors.white} strokeWidth={2} />
                 </TouchableOpacity>
               )}
 
