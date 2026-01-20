@@ -2,12 +2,13 @@ import {useCallback, useState} from 'react';
 import type {StickerData, DetectedFace} from '../types';
 import {generateId} from '../utils';
 
-// Hypurr face sticker sources - these will be rendered as images
+// Sticker sources - blur and hypurr faces
 export const HYPURR_FACE_STICKERS = [
-  {id: 'face1', source: require('../../assets/hypurr_face/hypurr_1_big_face_no_bg.png'), label: 'Hypurr 1'},
-  {id: 'face2', source: require('../../assets/hypurr_face/hypurr2_big_face_no_bg.png'), label: 'Hypurr 2'},
-  {id: 'face3', source: require('../../assets/hypurr_face/hypurr3_big_face__no_bg.png'), label: 'Hypurr 3'},
-  {id: 'face4', source: require('../../assets/hypurr_face/hypurr4_big_face_no_bg.png'), label: 'Hypurr 4'},
+  {id: 'blur', source: require('../../assets/hypurr_face/blur_icon.svg'), label: 'Blur', type: 'blur' as const},
+  {id: 'face1', source: require('../../assets/hypurr_face/hypurr1_big_face_no_bg.png'), label: 'Hypurr 1', type: 'image' as const},
+  {id: 'face2', source: require('../../assets/hypurr_face/hypurr2_big_face_no_bg.png'), label: 'Hypurr 2', type: 'image' as const},
+  {id: 'face3', source: require('../../assets/hypurr_face/hypurr3_big_face__no_bg.png'), label: 'Hypurr 3', type: 'image' as const},
+  {id: 'face4', source: require('../../assets/hypurr_face/hypurr4_big_face_no_bg.png'), label: 'Hypurr 4', type: 'image' as const},
 ];
 
 export function useStickers(initialFaces: DetectedFace[] = []) {
@@ -17,7 +18,7 @@ export function useStickers(initialFaces: DetectedFace[] = []) {
   );
   const [isAddMode, setIsAddMode] = useState(false);
   const [isSwitchMode, setIsSwitchMode] = useState(false);
-  const [pendingSticker, setPendingSticker] = useState<number | null>(null);
+  const [pendingSticker, setPendingSticker] = useState<{source: number; type: 'image' | 'blur'} | null>(null);
 
   // Initialize blur stickers for detected faces
   const initializeBlurStickers = useCallback((faces: DetectedFace[]) => {
@@ -43,13 +44,13 @@ export function useStickers(initialFaces: DetectedFace[] = []) {
     setStickers(blurStickers);
   }, []);
 
-  // Add a new image sticker
+  // Add a new sticker (image or blur)
   const addSticker = useCallback(
-    (imageSource: number, x: number, y: number) => {
+    (imageSource: number, x: number, y: number, stickerType: 'image' | 'blur' = 'image') => {
       const newSticker: StickerData = {
         id: generateId(),
-        type: 'image',
-        source: imageSource,
+        type: stickerType,
+        source: stickerType === 'blur' ? 'blur' : imageSource,
         x: x - 50, // Center the sticker
         y: y - 50,
         width: 100,
@@ -67,19 +68,19 @@ export function useStickers(initialFaces: DetectedFace[] = []) {
     [],
   );
 
-  // Replace a single blur sticker with a hypurr image
-  const replaceWithImage = useCallback((stickerId: string, imageSource: number) => {
+  // Replace a single sticker with another (image or blur)
+  const replaceWithImage = useCallback((stickerId: string, imageSource: number, stickerType: 'image' | 'blur' = 'image') => {
     setStickers(prev =>
       prev.map(s =>
-        s.id === stickerId ? {...s, type: 'image' as const, source: imageSource} : s,
+        s.id === stickerId ? {...s, type: stickerType, source: stickerType === 'blur' ? 'blur' : imageSource} : s,
       ),
     );
   }, []);
 
-  // Replace ALL stickers with the same hypurr image
-  const replaceAllWithImage = useCallback((imageSource: number) => {
+  // Replace ALL stickers with the same sticker (image or blur)
+  const replaceAllWithImage = useCallback((imageSource: number, stickerType: 'image' | 'blur' = 'image') => {
     setStickers(prev =>
-      prev.map(s => ({...s, type: 'image' as const, source: imageSource})),
+      prev.map(s => ({...s, type: stickerType, source: stickerType === 'blur' ? 'blur' : imageSource})),
     );
   }, []);
 
@@ -161,9 +162,9 @@ export function useStickers(initialFaces: DetectedFace[] = []) {
 
   // Add sticker at center of screen and set as pending for more placements
   const addStickerAtCenter = useCallback(
-    (imageSource: number, centerX: number, centerY: number) => {
-      addSticker(imageSource, centerX, centerY);
-      setPendingSticker(imageSource); // Set as pending so tapping screen adds more
+    (imageSource: number, centerX: number, centerY: number, stickerType: 'image' | 'blur' = 'image') => {
+      addSticker(imageSource, centerX, centerY, stickerType);
+      setPendingSticker({source: imageSource, type: stickerType}); // Set as pending so tapping screen adds more
     },
     [addSticker],
   );
@@ -172,7 +173,7 @@ export function useStickers(initialFaces: DetectedFace[] = []) {
   const addStickerAtPosition = useCallback(
     (x: number, y: number) => {
       if (!pendingSticker) return;
-      addSticker(pendingSticker, x, y);
+      addSticker(pendingSticker.source, x, y, pendingSticker.type);
     },
     [pendingSticker, addSticker],
   );

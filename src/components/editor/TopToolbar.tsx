@@ -15,7 +15,7 @@ interface TopToolbarProps {
   onToggleDrawing: () => void;
   onUndo: () => void;
   canUndo: boolean;
-  pendingSticker?: number | null;
+  pendingSticker?: {source: number; type: 'image' | 'blur'} | null;
   onOpenPicker?: () => void;
 }
 
@@ -98,7 +98,7 @@ const TopToolbar: React.FC<TopToolbarProps> = ({
                 onPress={onOpenPicker}
                 activeOpacity={0.7}>
                 <Image
-                  source={pendingSticker}
+                  source={pendingSticker.source}
                   style={styles.stickerPreviewImage}
                   resizeMode="contain"
                 />

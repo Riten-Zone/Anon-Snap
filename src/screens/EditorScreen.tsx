@@ -162,10 +162,10 @@ const EditorScreen: React.FC<EditorScreenProps> = ({navigation, route}) => {
 
   // Called when selecting a sticker from picker - place at center, keep picker open
   const handleSelectSticker = useCallback(
-    (imageSource: number) => {
+    (imageSource: number, stickerType: 'image' | 'blur' = 'image') => {
       const centerX = displaySize.width / 2;
       const centerY = displaySize.height / 2;
-      addStickerAtCenter(imageSource, centerX, centerY);
+      addStickerAtCenter(imageSource, centerX, centerY, stickerType);
       // Keep picker open so user can add more stickers
     },
     [displaySize, addStickerAtCenter],
@@ -178,25 +178,25 @@ const EditorScreen: React.FC<EditorScreenProps> = ({navigation, route}) => {
   }, [enterSwitchMode]);
 
   // Handle switching one sticker with selected hypurr (selected or first available)
-  const handleSwitchOne = useCallback((imageSource: number) => {
+  const handleSwitchOne = useCallback((imageSource: number, stickerType: 'image' | 'blur') => {
     // If a sticker is selected, switch that one; otherwise switch the first sticker
     const stickerToSwitch = selectedStickerId
       ? stickers.find(s => s.id === selectedStickerId)
       : stickers[0];
     if (stickerToSwitch) {
-      replaceWithImage(stickerToSwitch.id, imageSource);
+      replaceWithImage(stickerToSwitch.id, imageSource, stickerType);
     }
   }, [stickers, selectedStickerId, replaceWithImage]);
 
   // Handle switching all stickers with selected hypurr
-  const handleSwitchAll = useCallback((imageSource: number) => {
-    replaceAllWithImage(imageSource);
+  const handleSwitchAll = useCallback((imageSource: number, stickerType: 'image' | 'blur') => {
+    replaceAllWithImage(imageSource, stickerType);
   }, [replaceAllWithImage]);
 
-  // Handle randomizing all stickers with random hypurr images
+  // Handle randomizing all stickers with random hypurr images (excludes blur)
   const handleRandomiseAll = useCallback(() => {
-    const allSources = HYPURR_FACE_STICKERS.map(s => s.source);
-    replaceAllWithRandomImages(allSources);
+    const imageSources = HYPURR_FACE_STICKERS.filter(s => s.type === 'image').map(s => s.source);
+    replaceAllWithRandomImages(imageSources);
   }, [replaceAllWithRandomImages]);
 
   // Check if there are any stickers

@@ -14,7 +14,7 @@ import {colors} from '../../theme';
 interface StickerPickerProps {
   visible: boolean;
   onClose: () => void;
-  onSelectSticker: (imageSource: number) => void;
+  onSelectSticker: (imageSource: number, stickerType: 'image' | 'blur') => void;
 }
 
 const StickerPicker: React.FC<StickerPickerProps> = ({
@@ -41,7 +41,7 @@ const StickerPicker: React.FC<StickerPickerProps> = ({
             key={sticker.id}
             style={styles.stickerItem}
             onPress={() => {
-              onSelectSticker(sticker.source);
+              onSelectSticker(sticker.source, sticker.type);
               onClose();
             }}
             activeOpacity={0.7}>

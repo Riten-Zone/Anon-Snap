@@ -22,8 +22,8 @@ const ITEM_SIZE = (SCREEN_WIDTH - GRID_PADDING * 2 - GRID_GAP * (NUM_COLUMNS - 1
 interface HypurrPickerProps {
   visible: boolean;
   onClose: () => void;
-  onSwitchOne: (imageSource: number) => void;
-  onSwitchAll: (imageSource: number) => void;
+  onSwitchOne: (imageSource: number, stickerType: 'image' | 'blur') => void;
+  onSwitchAll: (imageSource: number, stickerType: 'image' | 'blur') => void;
   onRandomiseAll: () => void;
   hasStickers: boolean;
 }
@@ -36,36 +36,36 @@ const HypurrPicker: React.FC<HypurrPickerProps> = ({
   onRandomiseAll,
   hasStickers,
 }) => {
-  const [selectedSource, setSelectedSource] = useState<number | null>(null);
+  const [selectedSticker, setSelectedSticker] = useState<{source: number; type: 'image' | 'blur'} | null>(null);
 
-  const handleSelectImage = (source: number) => {
-    setSelectedSource(source);
+  const handleSelectImage = (source: number, type: 'image' | 'blur') => {
+    setSelectedSticker({source, type});
   };
 
   const handleSwitchOne = () => {
-    if (selectedSource !== null) {
-      onSwitchOne(selectedSource);
+    if (selectedSticker !== null) {
+      onSwitchOne(selectedSticker.source, selectedSticker.type);
       onClose();
-      setSelectedSource(null);
+      setSelectedSticker(null);
     }
   };
 
   const handleSwitchAll = () => {
-    if (selectedSource !== null) {
-      onSwitchAll(selectedSource);
+    if (selectedSticker !== null) {
+      onSwitchAll(selectedSticker.source, selectedSticker.type);
       onClose();
-      setSelectedSource(null);
+      setSelectedSticker(null);
     }
   };
 
   const handleRandomiseAll = () => {
     onRandomiseAll();
     onClose();
-    setSelectedSource(null);
+    setSelectedSticker(null);
   };
 
   const handleClose = () => {
-    setSelectedSource(null);
+    setSelectedSticker(null);
     onClose();
   };
 
@@ -111,9 +111,9 @@ const HypurrPicker: React.FC<HypurrPickerProps> = ({
                 key={sticker.id}
                 style={[
                   styles.gridItem,
-                  selectedSource === sticker.source && styles.gridItemSelected,
+                  selectedSticker?.source === sticker.source && styles.gridItemSelected,
                 ]}
-                onPress={() => handleSelectImage(sticker.source)}
+                onPress={() => handleSelectImage(sticker.source, sticker.type)}
                 activeOpacity={0.7}>
                 <Image
                   source={sticker.source}
@@ -129,15 +129,15 @@ const HypurrPicker: React.FC<HypurrPickerProps> = ({
             <TouchableOpacity
               style={[
                 styles.actionButton,
-                (!selectedSource || !hasStickers) && styles.buttonDisabled,
+                (!selectedSticker || !hasStickers) && styles.buttonDisabled,
               ]}
               onPress={handleSwitchOne}
-              disabled={!selectedSource || !hasStickers}
+              disabled={!selectedSticker || !hasStickers}
               activeOpacity={0.7}>
               <Text
                 style={[
                   styles.buttonText,
-                  (!selectedSource || !hasStickers) &&
+                  (!selectedSticker || !hasStickers) &&
                     styles.buttonTextDisabled,
                 ]}>
                 Switch One
@@ -147,15 +147,15 @@ const HypurrPicker: React.FC<HypurrPickerProps> = ({
             <TouchableOpacity
               style={[
                 styles.actionButton,
-                (!selectedSource || !hasStickers) && styles.buttonDisabled,
+                (!selectedSticker || !hasStickers) && styles.buttonDisabled,
               ]}
               onPress={handleSwitchAll}
-              disabled={!selectedSource || !hasStickers}
+              disabled={!selectedSticker || !hasStickers}
               activeOpacity={0.7}>
               <Text
                 style={[
                   styles.buttonText,
-                  (!selectedSource || !hasStickers) &&
+                  (!selectedSticker || !hasStickers) &&
                     styles.buttonTextDisabled,
                 ]}>
                 Switch All
