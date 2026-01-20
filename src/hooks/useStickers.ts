@@ -57,8 +57,9 @@ export function useStickers(initialFaces: DetectedFace[] = []) {
   }, []);
 
   // Add a new sticker (image or blur) - uses largest face size
+  // Returns the created sticker for action history tracking
   const addSticker = useCallback(
-    (imageSource: number, x: number, y: number, stickerType: 'image' | 'blur' = 'image') => {
+    (imageSource: number, x: number, y: number, stickerType: 'image' | 'blur' = 'image'): StickerData => {
       const newSticker: StickerData = {
         id: generateId(),
         type: stickerType,
@@ -76,6 +77,7 @@ export function useStickers(initialFaces: DetectedFace[] = []) {
         prev.map(s => ({...s, isSelected: false})).concat(newSticker),
       );
       setSelectedStickerId(newSticker.id);
+      return newSticker;
     },
     [largestFaceSize],
   );
@@ -96,13 +98,11 @@ export function useStickers(initialFaces: DetectedFace[] = []) {
     );
   }, []);
 
-  // Replace ALL stickers with random hypurr images
-  const replaceAllWithRandomImages = useCallback((imageSources: number[]) => {
+  // Replace ALL stickers with specified image sources (one per sticker)
+  // Used for applying pre-computed random or specific assignments
+  const replaceAllWithSources = useCallback((sources: number[]) => {
     setStickers(prev =>
-      prev.map(s => {
-        const randomSource = imageSources[Math.floor(Math.random() * imageSources.length)];
-        return {...s, type: 'image' as const, source: randomSource};
-      }),
+      prev.map((s, i) => ({...s, type: 'image' as const, source: sources[i % sources.length]})),
     );
   }, []);
 
@@ -173,19 +173,22 @@ export function useStickers(initialFaces: DetectedFace[] = []) {
   }, []);
 
   // Add sticker at center of screen and set as pending for more placements
+  // Returns the created sticker for action history tracking
   const addStickerAtCenter = useCallback(
-    (imageSource: number, centerX: number, centerY: number, stickerType: 'image' | 'blur' = 'image') => {
-      addSticker(imageSource, centerX, centerY, stickerType);
+    (imageSource: number, centerX: number, centerY: number, stickerType: 'image' | 'blur' = 'image'): StickerData => {
+      const newSticker = addSticker(imageSource, centerX, centerY, stickerType);
       setPendingSticker({source: imageSource, type: stickerType}); // Set as pending so tapping screen adds more
+      return newSticker;
     },
     [addSticker],
   );
 
   // Add sticker at position (used when tapping in add mode)
+  // Returns the created sticker for action history tracking, or null if no pending sticker
   const addStickerAtPosition = useCallback(
-    (x: number, y: number) => {
-      if (!pendingSticker) return;
-      addSticker(pendingSticker.source, x, y, pendingSticker.type);
+    (x: number, y: number): StickerData | null => {
+      if (!pendingSticker) return null;
+      return addSticker(pendingSticker.source, x, y, pendingSticker.type);
     },
     [pendingSticker, addSticker],
   );
@@ -213,6 +216,18 @@ export function useStickers(initialFaces: DetectedFace[] = []) {
     });
   }, []);
 
+  // Restore a specific sticker (used for undo of delete)
+  const restoreSticker = useCallback((stickerData: StickerData) => {
+    setStickers(prev => [...prev, stickerData]);
+  }, []);
+
+  // Update a sticker with full state (used for undo/redo of transforms)
+  const updateStickerState = useCallback((id: string, state: Partial<StickerData>) => {
+    setStickers(prev =>
+      prev.map(s => (s.id === id ? {...s, ...state} : s)),
+    );
+  }, []);
+
   return {
     stickers,
     selectedStickerId,
@@ -223,7 +238,7 @@ export function useStickers(initialFaces: DetectedFace[] = []) {
     addSticker,
     replaceWithImage,
     replaceAllWithImage,
-    replaceAllWithRandomImages,
+    replaceAllWithSources,
     updateStickerPosition,
     updateStickerScale,
     updateStickerRotation,
@@ -239,5 +254,7 @@ export function useStickers(initialFaces: DetectedFace[] = []) {
     undoLastSticker,
     redoLastSticker,
     undoneStickers,
+    restoreSticker,
+    updateStickerState,
   };
 }

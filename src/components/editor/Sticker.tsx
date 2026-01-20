@@ -1,4 +1,4 @@
-import React, {useCallback, useMemo} from 'react';
+import React, {useCallback, useMemo, useRef} from 'react';
 import {View, StyleSheet, TouchableOpacity, Image} from 'react-native';
 import Animated, {
   useSharedValue,
@@ -64,8 +64,8 @@ const PixelGrid: React.FC<PixelGridProps> = ({width, height, seed}) => {
 
 interface StickerProps {
   sticker: StickerData;
-  onUpdate: (id: string, updates: Partial<StickerData>) => void;
-  onDelete: (id: string) => void;
+  onUpdate: (id: string, updates: Partial<StickerData>, beforeState?: StickerData) => void;
+  onDelete: (id: string, deletedSticker: StickerData) => void;
   onSelect: (id: string) => void;
 }
 
@@ -82,10 +82,23 @@ const Sticker: React.FC<StickerProps> = ({
   const savedScale = useSharedValue(sticker.scale);
   const savedRotation = useSharedValue(sticker.rotation);
 
+  // Store sticker state at gesture start for undo/redo
+  const gestureStartState = useRef<StickerData | null>(null);
+
+  const captureStartState = useCallback(() => {
+    gestureStartState.current = {...sticker};
+  }, [sticker]);
+
+  const updateWithHistory = useCallback((id: string, updates: Partial<StickerData>) => {
+    onUpdate(id, updates, gestureStartState.current || undefined);
+    gestureStartState.current = null;
+  }, [onUpdate]);
+
   // Pan gesture for moving
   const panGesture = Gesture.Pan()
     .onStart(() => {
       'worklet';
+      runOnJS(captureStartState)();
       runOnJS(onSelect)(sticker.id);
     })
     .onUpdate(event => {
@@ -97,13 +110,14 @@ const Sticker: React.FC<StickerProps> = ({
       'worklet';
       const newX = sticker.x + event.translationX;
       const newY = sticker.y + event.translationY;
-      runOnJS(onUpdate)(sticker.id, {x: newX, y: newY});
+      runOnJS(updateWithHistory)(sticker.id, {x: newX, y: newY});
     });
 
   // Pinch gesture for scaling
   const pinchGesture = Gesture.Pinch()
     .onStart(() => {
       'worklet';
+      runOnJS(captureStartState)();
       savedScale.value = scale.value;
     })
     .onUpdate(event => {
@@ -112,13 +126,14 @@ const Sticker: React.FC<StickerProps> = ({
     })
     .onEnd(() => {
       'worklet';
-      runOnJS(onUpdate)(sticker.id, {scale: scale.value});
+      runOnJS(updateWithHistory)(sticker.id, {scale: scale.value});
     });
 
   // Rotation gesture
   const rotationGesture = Gesture.Rotation()
     .onStart(() => {
       'worklet';
+      runOnJS(captureStartState)();
       savedRotation.value = rotation.value;
     })
     .onUpdate(event => {
@@ -127,7 +142,7 @@ const Sticker: React.FC<StickerProps> = ({
     })
     .onEnd(() => {
       'worklet';
-      runOnJS(onUpdate)(sticker.id, {rotation: rotation.value});
+      runOnJS(updateWithHistory)(sticker.id, {rotation: rotation.value});
     });
 
   // Tap gesture for selecting sticker
@@ -153,12 +168,13 @@ const Sticker: React.FC<StickerProps> = ({
   }));
 
   const handleDelete = useCallback(() => {
-    onDelete(sticker.id);
-  }, [sticker.id, onDelete]);
+    onDelete(sticker.id, sticker);
+  }, [sticker, onDelete]);
 
   const handleScaleStart = Gesture.Pan()
     .onStart(() => {
       'worklet';
+      runOnJS(captureStartState)();
       savedScale.value = scale.value;
     })
     .onUpdate(event => {
@@ -169,12 +185,13 @@ const Sticker: React.FC<StickerProps> = ({
     })
     .onEnd(() => {
       'worklet';
-      runOnJS(onUpdate)(sticker.id, {scale: scale.value});
+      runOnJS(updateWithHistory)(sticker.id, {scale: scale.value});
     });
 
   const handleRotateStart = Gesture.Pan()
     .onStart(() => {
       'worklet';
+      runOnJS(captureStartState)();
       savedRotation.value = rotation.value;
     })
     .onUpdate(event => {
@@ -183,7 +200,7 @@ const Sticker: React.FC<StickerProps> = ({
     })
     .onEnd(() => {
       'worklet';
-      runOnJS(onUpdate)(sticker.id, {rotation: rotation.value});
+      runOnJS(updateWithHistory)(sticker.id, {rotation: rotation.value});
     });
 
   return (

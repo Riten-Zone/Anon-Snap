@@ -16,6 +16,7 @@ import type {StickerData, DetectedFace} from '../types';
 import {useStickers} from '../hooks';
 import {ALL_STICKERS} from '../data/stickerRegistry';
 import {useDrawing} from '../hooks/useDrawing';
+import {useActionHistory} from '../hooks/useActionHistory';
 import {detectFacesInImage} from '../services/FaceDetectionService';
 import {saveToGallery} from '../services/GalleryService';
 import {shareImage, shareToTwitter, shareToTelegram} from '../services/ShareService';
@@ -50,7 +51,7 @@ const EditorScreen: React.FC<EditorScreenProps> = ({navigation, route}) => {
     initializeBlurStickers,
     replaceWithImage,
     replaceAllWithImage,
-    replaceAllWithRandomImages,
+    replaceAllWithSources,
     updateStickerPosition,
     updateStickerScale,
     updateStickerRotation,
@@ -64,9 +65,8 @@ const EditorScreen: React.FC<EditorScreenProps> = ({navigation, route}) => {
     exitSwitchMode,
     addStickerAtCenter,
     addStickerAtPosition,
-    undoLastSticker,
-    redoLastSticker,
-    undoneStickers,
+    restoreSticker,
+    updateStickerState,
   } = useStickers();
 
   const {
@@ -79,8 +79,18 @@ const EditorScreen: React.FC<EditorScreenProps> = ({navigation, route}) => {
     endStroke,
     undoLastStroke,
     redoLastStroke,
-    undoneStrokes,
   } = useDrawing();
+
+  // Global action history for undo/redo
+  const {
+    recordAction,
+    getUndoAction,
+    getRedoAction,
+    confirmUndo,
+    confirmRedo,
+    canUndo: historyCanUndo,
+    canRedo: historyCanRedo,
+  } = useActionHistory();
 
   // Calculate image offset early so it can be used in callbacks
   const imageOffsetX = (SCREEN_WIDTH - displaySize.width) / 2;
@@ -145,7 +155,12 @@ const EditorScreen: React.FC<EditorScreenProps> = ({navigation, route}) => {
   }, [photoUri, initializeBlurStickers]);
 
   const handleStickerUpdate = useCallback(
-    (id: string, updates: Partial<StickerData>) => {
+    (id: string, updates: Partial<StickerData>, beforeState?: StickerData) => {
+      // Find the current sticker to create afterState
+      const currentSticker = stickers.find(s => s.id === id);
+      if (!currentSticker) return;
+
+      // Apply updates
       if (updates.x !== undefined && updates.y !== undefined) {
         updateStickerPosition(id, updates.x, updates.y);
       }
@@ -155,9 +170,156 @@ const EditorScreen: React.FC<EditorScreenProps> = ({navigation, route}) => {
       if (updates.rotation !== undefined) {
         updateStickerRotation(id, updates.rotation);
       }
+
+      // Record action for undo/redo if we have a before state
+      if (beforeState) {
+        const afterState = {...currentSticker, ...updates};
+        recordAction({
+          type: 'TRANSFORM_STICKER',
+          payload: {
+            stickerId: id,
+            before: beforeState,
+            after: afterState,
+          },
+        });
+      }
     },
-    [updateStickerPosition, updateStickerScale, updateStickerRotation],
+    [stickers, updateStickerPosition, updateStickerScale, updateStickerRotation, recordAction],
   );
+
+  // Handle sticker deletion with history recording
+  const handleDeleteSticker = useCallback(
+    (id: string, deletedSticker: StickerData) => {
+      deleteSticker(id);
+      recordAction({
+        type: 'DELETE_STICKER',
+        payload: {
+          stickerId: id,
+          before: deletedSticker,
+          after: null,
+        },
+      });
+    },
+    [deleteSticker, recordAction],
+  );
+
+  // Global undo handler
+  const handleUndo = useCallback(() => {
+    const action = getUndoAction();
+    if (!action) return;
+
+    switch (action.type) {
+      case 'TRANSFORM_STICKER':
+        // Restore sticker to before state
+        if (action.payload.before && action.payload.stickerId) {
+          const before = action.payload.before as StickerData;
+          updateStickerState(action.payload.stickerId, {
+            x: before.x,
+            y: before.y,
+            scale: before.scale,
+            rotation: before.rotation,
+          });
+        }
+        break;
+      case 'DELETE_STICKER':
+        // Restore deleted sticker
+        if (action.payload.before) {
+          restoreSticker(action.payload.before as StickerData);
+        }
+        break;
+      case 'ADD_STICKER':
+        // Remove the added sticker
+        if (action.payload.stickerId) {
+          deleteSticker(action.payload.stickerId);
+        }
+        break;
+      case 'SWITCH_STICKER':
+        // Restore single sticker to before state
+        if (action.payload.before && action.payload.stickerId) {
+          const before = action.payload.before as StickerData;
+          updateStickerState(action.payload.stickerId, {
+            type: before.type,
+            source: before.source,
+          });
+        }
+        break;
+      case 'SWITCH_ALL_STICKERS':
+        // Restore all stickers to before states
+        if (action.payload.beforeStickers) {
+          action.payload.beforeStickers.forEach(before => {
+            updateStickerState(before.id, {
+              type: before.type,
+              source: before.source,
+            });
+          });
+        }
+        break;
+      case 'ADD_STROKE':
+        // Remove the added stroke
+        undoLastStroke();
+        break;
+    }
+    confirmUndo();
+  }, [getUndoAction, confirmUndo, updateStickerState, restoreSticker, deleteSticker, undoLastStroke]);
+
+  // Global redo handler
+  const handleRedo = useCallback(() => {
+    const action = getRedoAction();
+    if (!action) return;
+
+    switch (action.type) {
+      case 'TRANSFORM_STICKER':
+        // Apply the after state
+        if (action.payload.after && action.payload.stickerId) {
+          const after = action.payload.after as StickerData;
+          updateStickerState(action.payload.stickerId, {
+            x: after.x,
+            y: after.y,
+            scale: after.scale,
+            rotation: after.rotation,
+          });
+        }
+        break;
+      case 'DELETE_STICKER':
+        // Delete the sticker again
+        if (action.payload.stickerId) {
+          deleteSticker(action.payload.stickerId);
+        }
+        break;
+      case 'ADD_STICKER':
+        // Re-add the sticker
+        if (action.payload.after) {
+          restoreSticker(action.payload.after as StickerData);
+        }
+        break;
+      case 'SWITCH_STICKER':
+        // Apply after state to single sticker
+        if (action.payload.after && action.payload.stickerId) {
+          const after = action.payload.after as StickerData;
+          updateStickerState(action.payload.stickerId, {
+            type: after.type,
+            source: after.source,
+          });
+        }
+        break;
+      case 'SWITCH_ALL_STICKERS':
+        // Apply after states to all stickers
+        if (action.payload.afterStickers) {
+          action.payload.afterStickers.forEach(after => {
+            updateStickerState(after.id, {
+              type: after.type,
+              source: after.source,
+            });
+          });
+        }
+        break;
+      case 'ADD_STROKE':
+        // Redo the stroke
+        redoLastStroke();
+        break;
+    }
+    confirmRedo();
+  }, [getRedoAction, confirmRedo, updateStickerState, deleteSticker, restoreSticker, redoLastStroke]);
 
   // Called when tapping Add button - enter mode and show picker
   const handleOpenAddMode = useCallback(() => {
@@ -170,10 +332,19 @@ const EditorScreen: React.FC<EditorScreenProps> = ({navigation, route}) => {
     (imageSource: number, stickerType: 'image' | 'blur' = 'image') => {
       const centerX = displaySize.width / 2;
       const centerY = displaySize.height / 2;
-      addStickerAtCenter(imageSource, centerX, centerY, stickerType);
+      const newSticker = addStickerAtCenter(imageSource, centerX, centerY, stickerType);
+      // Record action for undo/redo
+      recordAction({
+        type: 'ADD_STICKER',
+        payload: {
+          stickerId: newSticker.id,
+          before: null,
+          after: newSticker,
+        },
+      });
       // Keep picker open so user can add more stickers
     },
-    [displaySize, addStickerAtCenter],
+    [displaySize, addStickerAtCenter, recordAction],
   );
 
   const handleSwitchMode = useCallback(() => {
@@ -189,20 +360,72 @@ const EditorScreen: React.FC<EditorScreenProps> = ({navigation, route}) => {
       ? stickers.find(s => s.id === selectedStickerId)
       : stickers[0];
     if (stickerToSwitch) {
+      // Record before state
+      const beforeState = {...stickerToSwitch};
       replaceWithImage(stickerToSwitch.id, imageSource, stickerType);
+      // Record action for undo/redo
+      recordAction({
+        type: 'SWITCH_STICKER',
+        payload: {
+          stickerId: stickerToSwitch.id,
+          before: beforeState,
+          after: {...stickerToSwitch, type: stickerType, source: stickerType === 'blur' ? 'blur' : imageSource},
+        },
+      });
     }
-  }, [stickers, selectedStickerId, replaceWithImage]);
+  }, [stickers, selectedStickerId, replaceWithImage, recordAction]);
 
   // Handle switching all stickers with selected hypurr
   const handleSwitchAll = useCallback((imageSource: number, stickerType: 'image' | 'blur') => {
+    // Record before states for all stickers
+    const beforeStickers = stickers.map(s => ({...s}));
     replaceAllWithImage(imageSource, stickerType);
-  }, [replaceAllWithImage]);
+    // Record after states
+    const afterStickers = stickers.map(s => ({
+      ...s,
+      type: stickerType,
+      source: stickerType === 'blur' ? 'blur' : imageSource,
+    }));
+    // Record action for undo/redo
+    recordAction({
+      type: 'SWITCH_ALL_STICKERS',
+      payload: {
+        beforeStickers,
+        afterStickers,
+      },
+    });
+  }, [stickers, replaceAllWithImage, recordAction]);
 
   // Handle randomizing all stickers with random hypurr images (excludes blur)
   const handleRandomiseAll = useCallback(() => {
+    // Record before states for all stickers
+    const beforeStickers = stickers.map(s => ({...s}));
     const imageSources = ALL_STICKERS.filter(s => s.type === 'image').map(s => s.source);
-    replaceAllWithRandomImages(imageSources);
-  }, [replaceAllWithRandomImages]);
+
+    // Generate the random assignments ahead of time so we can record them
+    const randomAssignments = stickers.map(() => {
+      return imageSources[Math.floor(Math.random() * imageSources.length)];
+    });
+
+    // Create after states with the random assignments
+    const afterStickers = stickers.map((s, i) => ({
+      ...s,
+      type: 'image' as const,
+      source: randomAssignments[i],
+    }));
+
+    // Apply the pre-computed random assignments
+    replaceAllWithSources(randomAssignments);
+
+    // Record action for undo/redo
+    recordAction({
+      type: 'SWITCH_ALL_STICKERS',
+      payload: {
+        beforeStickers,
+        afterStickers,
+      },
+    });
+  }, [stickers, replaceAllWithSources, recordAction]);
 
   // Check if there are any stickers
   const hasStickers = useMemo(() => stickers.length > 0, [stickers]);
@@ -217,14 +440,25 @@ const EditorScreen: React.FC<EditorScreenProps> = ({navigation, route}) => {
         // Adjust for image layer offset
         const adjustedX = x - imageOffsetX;
         const adjustedY = y - imageOffsetY;
-        addStickerAtPosition(adjustedX, adjustedY);
+        const newSticker = addStickerAtPosition(adjustedX, adjustedY);
+        // Record action for undo/redo
+        if (newSticker) {
+          recordAction({
+            type: 'ADD_STICKER',
+            payload: {
+              stickerId: newSticker.id,
+              before: null,
+              after: newSticker,
+            },
+          });
+        }
       } else {
         // Deselect stickers and close picker, but stay in current mode
         deselectAll();
         setShowStickerPicker(false);
       }
     },
-    [isDrawingMode, isAddMode, pendingSticker, addStickerAtPosition, deselectAll, imageOffsetX, imageOffsetY],
+    [isDrawingMode, isAddMode, pendingSticker, addStickerAtPosition, deselectAll, imageOffsetX, imageOffsetY, recordAction],
   );
 
   // Drawing gesture handlers
@@ -247,8 +481,19 @@ const EditorScreen: React.FC<EditorScreenProps> = ({navigation, route}) => {
   );
 
   const handleDrawEnd = useCallback(() => {
-    endStroke();
-  }, [endStroke]);
+    const newStroke = endStroke();
+    // Record action for undo/redo
+    if (newStroke) {
+      recordAction({
+        type: 'ADD_STROKE',
+        payload: {
+          strokeId: newStroke.id,
+          before: null,
+          after: newStroke,
+        },
+      });
+    }
+  }, [endStroke, recordAction]);
 
   // Background tap gesture - only triggers when tapping empty space
   const backgroundTapGesture = Gesture.Tap()
@@ -428,7 +673,7 @@ const EditorScreen: React.FC<EditorScreenProps> = ({navigation, route}) => {
                 key={sticker.id}
                 sticker={sticker}
                 onUpdate={handleStickerUpdate}
-                onDelete={deleteSticker}
+                onDelete={handleDeleteSticker}
                 onSelect={selectSticker}
               />
             ))}
@@ -447,10 +692,10 @@ const EditorScreen: React.FC<EditorScreenProps> = ({navigation, route}) => {
         onExitSwitchMode={exitSwitchMode}
         isDrawingMode={isDrawingMode}
         onToggleDrawing={toggleDrawingMode}
-        onUndo={isDrawingMode ? undoLastStroke : undoLastSticker}
-        canUndo={isDrawingMode ? strokes.length > 0 : stickers.filter(s => s.type === 'image').length > 0}
-        onRedo={isDrawingMode ? redoLastStroke : redoLastSticker}
-        canRedo={isDrawingMode ? undoneStrokes.length > 0 : undoneStickers.length > 0}
+        onUndo={handleUndo}
+        canUndo={historyCanUndo}
+        onRedo={handleRedo}
+        canRedo={historyCanRedo}
         pendingSticker={pendingSticker}
         onOpenPicker={() => setShowStickerPicker(true)}
       />

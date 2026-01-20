@@ -22,7 +22,8 @@ export function useDrawing() {
     setCurrentStroke(prev => [...prev, {x, y}]);
   }, []);
 
-  const endStroke = useCallback(() => {
+  // Returns the created stroke for action history tracking, or null if no points
+  const endStroke = useCallback((): DrawingStroke | null => {
     if (currentStroke.length > 0) {
       const newStroke: DrawingStroke = {
         id: generateId(),
@@ -31,7 +32,9 @@ export function useDrawing() {
       };
       setStrokes(prev => [...prev, newStroke]);
       setCurrentStroke([]);
+      return newStroke;
     }
+    return null;
   }, [currentStroke]);
 
   const undoLastStroke = useCallback(() => {

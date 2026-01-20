@@ -130,15 +130,35 @@ const TopToolbar: React.FC<TopToolbarProps> = ({
             )}
           </>
         ) : (
-          // Default view - all tools listed vertically
+          // Default view - all tools listed vertically with undo/redo next to Switch
           <>
-            <TouchableOpacity
-              style={styles.toolButton}
-              onPress={onSwitchSticker}
-              activeOpacity={0.7}>
-              <Shuffle size={24} color={colors.white} strokeWidth={1.5} />
-              <Text style={styles.toolLabel}>Switch</Text>
-            </TouchableOpacity>
+            <View style={styles.activeModeRow}>
+              {/* Undo button - always visible, greyed out when disabled */}
+              <TouchableOpacity
+                style={[styles.undoButton, {opacity: canUndo ? 1 : 0.3}]}
+                onPress={onUndo}
+                activeOpacity={0.7}
+                disabled={!canUndo}>
+                <Undo2 size={22} color={colors.white} strokeWidth={2} />
+              </TouchableOpacity>
+
+              {/* Redo button - always visible, greyed out when disabled */}
+              <TouchableOpacity
+                style={[styles.undoButton, {opacity: canRedo ? 1 : 0.3}]}
+                onPress={onRedo}
+                activeOpacity={0.7}
+                disabled={!canRedo}>
+                <Redo2 size={22} color={colors.white} strokeWidth={2} />
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={styles.toolButton}
+                onPress={onSwitchSticker}
+                activeOpacity={0.7}>
+                <Shuffle size={24} color={colors.white} strokeWidth={1.5} />
+                <Text style={styles.toolLabel}>Switch</Text>
+              </TouchableOpacity>
+            </View>
 
             <TouchableOpacity
               style={styles.toolButton}

@@ -50,8 +50,8 @@ export const STICKER_COLLECTIONS: StickerCollection[] = [
         type: 'image',
       },
       {
-        id: 'hypurrco_hypurr16_no_bg_sleeping',
-        source: require('../../assets/stickers/HypurrCo/hypurr16_no_bg_sleeping.png'),
+        id: 'hypurrco_hypurr16_no_bg',
+        source: require('../../assets/stickers/HypurrCo/hypurr16_no_bg.png'),
         type: 'image',
       },
       {
