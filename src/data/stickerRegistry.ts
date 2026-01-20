@@ -25,8 +25,8 @@ export const STICKER_COLLECTIONS: StickerCollection[] = [
     name: 'HypurrCo',
     stickers: [
       {
-        id: 'hypurrco_hypurr11_no_bg',
-        source: require('../../assets/stickers/HypurrCo/hypurr11_no_bg.png'),
+        id: 'hypurrco_hypurr11_no_bg_smaller',
+        source: require('../../assets/stickers/HypurrCo/hypurr11_no_bg_smaller.png'),
         type: 'image',
       },
       {
