@@ -1,4 +1,4 @@
-import React, {useCallback, useMemo, useRef} from 'react';
+import React, {useCallback, useEffect, useMemo, useRef} from 'react';
 import {View, StyleSheet, TouchableOpacity, Image} from 'react-native';
 import Animated, {
   useSharedValue,
@@ -82,12 +82,30 @@ const Sticker: React.FC<StickerProps> = ({
   const savedScale = useSharedValue(sticker.scale);
   const savedRotation = useSharedValue(sticker.rotation);
 
+  // Keep shared values synced with sticker prop
+  // This is crucial for undo/redo to visually update the sticker
+  useEffect(() => {
+    translateX.value = sticker.x;
+    translateY.value = sticker.y;
+    scale.value = sticker.scale;
+    rotation.value = sticker.rotation;
+  }, [sticker.x, sticker.y, sticker.scale, sticker.rotation, translateX, translateY, scale, rotation]);
+
   // Store sticker state at gesture start for undo/redo
   const gestureStartState = useRef<StickerData | null>(null);
 
-  const captureStartState = useCallback(() => {
-    gestureStartState.current = {...sticker};
+  // Use a ref to always have the latest sticker value available
+  // This avoids closure issues when runOnJS calls from worklets
+  const stickerRef = useRef<StickerData>(sticker);
+
+  // Keep ref updated whenever sticker changes
+  useEffect(() => {
+    stickerRef.current = sticker;
   }, [sticker]);
+
+  const captureStartState = useCallback(() => {
+    gestureStartState.current = {...stickerRef.current};
+  }, []); // No dependencies needed - uses ref
 
   const updateWithHistory = useCallback((id: string, updates: Partial<StickerData>) => {
     onUpdate(id, updates, gestureStartState.current || undefined);
