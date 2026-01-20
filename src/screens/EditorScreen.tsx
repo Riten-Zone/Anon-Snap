@@ -13,7 +13,8 @@ import {GestureHandlerRootView, Gesture, GestureDetector} from 'react-native-ges
 import {runOnJS} from 'react-native-reanimated';
 import type {EditorScreenProps} from '../types';
 import type {StickerData, DetectedFace} from '../types';
-import {useStickers, HYPURR_FACE_STICKERS} from '../hooks';
+import {useStickers} from '../hooks';
+import {ALL_STICKERS} from '../data/stickerRegistry';
 import {useDrawing} from '../hooks/useDrawing';
 import {detectFacesInImage} from '../services/FaceDetectionService';
 import {saveToGallery} from '../services/GalleryService';
@@ -195,7 +196,7 @@ const EditorScreen: React.FC<EditorScreenProps> = ({navigation, route}) => {
 
   // Handle randomizing all stickers with random hypurr images (excludes blur)
   const handleRandomiseAll = useCallback(() => {
-    const imageSources = HYPURR_FACE_STICKERS.filter(s => s.type === 'image').map(s => s.source);
+    const imageSources = ALL_STICKERS.filter(s => s.type === 'image').map(s => s.source);
     replaceAllWithRandomImages(imageSources);
   }, [replaceAllWithRandomImages]);
 

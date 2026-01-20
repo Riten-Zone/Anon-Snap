@@ -1,15 +1,10 @@
 import {useCallback, useState} from 'react';
 import type {StickerData, DetectedFace} from '../types';
 import {generateId} from '../utils';
+import {ALL_STICKERS} from '../data/stickerRegistry';
 
-// Sticker sources - blur and hypurr faces
-export const HYPURR_FACE_STICKERS = [
-  {id: 'blur', source: require('../../assets/hypurr_face/blur_icon.png'), label: 'Blur', type: 'blur' as const},
-  {id: 'face1', source: require('../../assets/hypurr_face/hypurr1_big_face_no_bg.png'), label: 'Hypurr 1', type: 'image' as const},
-  {id: 'face2', source: require('../../assets/hypurr_face/hypurr2_big_face_no_bg.png'), label: 'Hypurr 2', type: 'image' as const},
-  {id: 'face3', source: require('../../assets/hypurr_face/hypurr3_big_face__no_bg.png'), label: 'Hypurr 3', type: 'image' as const},
-  {id: 'face4', source: require('../../assets/hypurr_face/hypurr4_big_face_no_bg.png'), label: 'Hypurr 4', type: 'image' as const},
-];
+// Re-export for backward compatibility
+export const HYPURR_FACE_STICKERS = ALL_STICKERS;
 
 export function useStickers(initialFaces: DetectedFace[] = []) {
   const [stickers, setStickers] = useState<StickerData[]>([]);

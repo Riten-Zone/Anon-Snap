@@ -6,10 +6,17 @@ import {
   ScrollView,
   TouchableOpacity,
   Image,
+  Dimensions,
 } from 'react-native';
 import {X} from 'lucide-react-native';
-import {HYPURR_FACE_STICKERS} from '../../hooks/useStickers';
+import {ALL_STICKERS} from '../../data/stickerRegistry';
 import {colors} from '../../theme';
+
+const {width: SCREEN_WIDTH} = Dimensions.get('window');
+const GRID_PADDING = 16;
+const GRID_GAP = 12;
+const NUM_COLUMNS = 4;
+const ITEM_SIZE = (SCREEN_WIDTH - GRID_PADDING * 2 - GRID_GAP * (NUM_COLUMNS - 1)) / NUM_COLUMNS;
 
 interface StickerPickerProps {
   visible: boolean;
@@ -33,13 +40,13 @@ const StickerPicker: React.FC<StickerPickerProps> = ({
         </TouchableOpacity>
       </View>
       <ScrollView
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        contentContainerStyle={styles.scrollContent}>
-        {HYPURR_FACE_STICKERS.map(sticker => (
+        style={styles.scrollView}
+        contentContainerStyle={styles.gridContainer}
+        showsVerticalScrollIndicator={false}>
+        {ALL_STICKERS.map(sticker => (
           <TouchableOpacity
             key={sticker.id}
-            style={styles.stickerItem}
+            style={styles.gridItem}
             onPress={() => {
               onSelectSticker(sticker.source, sticker.type);
               onClose();
@@ -50,7 +57,6 @@ const StickerPicker: React.FC<StickerPickerProps> = ({
               style={styles.stickerImage}
               resizeMode="contain"
             />
-            <Text style={styles.stickerLabel}>{sticker.label}</Text>
           </TouchableOpacity>
         ))}
       </ScrollView>
@@ -68,6 +74,7 @@ const styles = StyleSheet.create({
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
     paddingBottom: 20,
+    maxHeight: '50%',
   },
   header: {
     flexDirection: 'row',
@@ -91,26 +98,27 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-  scrollContent: {
-    paddingHorizontal: 10,
-    paddingTop: 15,
+  scrollView: {
+    maxHeight: 300,
   },
-  stickerItem: {
-    alignItems: 'center',
-    marginHorizontal: 10,
-    padding: 10,
+  gridContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    paddingHorizontal: GRID_PADDING,
+    paddingVertical: 12,
+    gap: GRID_GAP,
+  },
+  gridItem: {
+    width: ITEM_SIZE,
+    height: ITEM_SIZE,
     borderRadius: 12,
-    backgroundColor: colors.gray700,
-    minWidth: 80,
+    backgroundColor: colors.gray800,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   stickerImage: {
-    width: 50,
-    height: 50,
-    marginBottom: 5,
-  },
-  stickerLabel: {
-    fontSize: 12,
-    color: colors.gray300,
+    width: ITEM_SIZE - 12,
+    height: ITEM_SIZE - 12,
   },
 });
 

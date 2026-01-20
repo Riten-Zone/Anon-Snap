@@ -10,7 +10,7 @@ import {
   Dimensions,
 } from 'react-native';
 import {X} from 'lucide-react-native';
-import {HYPURR_FACE_STICKERS} from '../../hooks/useStickers';
+import {ALL_STICKERS} from '../../data/stickerRegistry';
 import {colors} from '../../theme';
 
 const {width: SCREEN_WIDTH} = Dimensions.get('window');
@@ -106,7 +106,7 @@ const HypurrPicker: React.FC<HypurrPickerProps> = ({
             style={styles.scrollView}
             contentContainerStyle={styles.gridContainer}
             showsVerticalScrollIndicator={false}>
-            {HYPURR_FACE_STICKERS.map(sticker => (
+            {ALL_STICKERS.map(sticker => (
               <TouchableOpacity
                 key={sticker.id}
                 style={[
@@ -233,7 +233,7 @@ const styles = StyleSheet.create({
     paddingBottom: 8,
   },
   scrollView: {
-    maxHeight: 200,
+    maxHeight: 300,
   },
   gridContainer: {
     flexDirection: 'row',

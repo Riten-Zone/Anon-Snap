@@ -1,0 +1,80 @@
+// Auto-generated file - do not edit manually
+// Run: node scripts/generate-sticker-registry.js
+
+export interface StickerItem {
+  id: string;
+  source: number;
+  type: 'blur' | 'image';
+}
+
+export interface StickerCollection {
+  name: string;
+  stickers: StickerItem[];
+}
+
+// Blur sticker (always first)
+export const BLUR_STICKER: StickerItem = {
+  id: 'blur',
+  source: require('../../assets/stickers/blur_icon.png'),
+  type: 'blur',
+};
+
+// Sticker collections
+export const STICKER_COLLECTIONS: StickerCollection[] = [
+  {
+    name: 'HypurrCo',
+    stickers: [
+      {
+        id: 'hypurrco_hypurr7_big_face_no_bg',
+        source: require('../../assets/stickers/HypurrCo/hypurr7_big_face_no_bg.png'),
+        type: 'image',
+      },
+      {
+        id: 'hypurrco_hypurr8_no_bg',
+        source: require('../../assets/stickers/HypurrCo/hypurr8_no_bg.png'),
+        type: 'image',
+      },
+    ],
+  },
+  {
+    name: 'HypurrLiquid',
+    stickers: [
+      {
+        id: 'hypurrliquid_hypurr1_big_face_no_bg',
+        source: require('../../assets/stickers/HypurrLiquid/hypurr1_big_face_no_bg.png'),
+        type: 'image',
+      },
+      {
+        id: 'hypurrliquid_hypurr2_big_face_no_bg',
+        source: require('../../assets/stickers/HypurrLiquid/hypurr2_big_face_no_bg.png'),
+        type: 'image',
+      },
+      {
+        id: 'hypurrliquid_hypurr3_big_face__no_bg',
+        source: require('../../assets/stickers/HypurrLiquid/hypurr3_big_face__no_bg.png'),
+        type: 'image',
+      },
+      {
+        id: 'hypurrliquid_hypurr4_big_face_no_bg',
+        source: require('../../assets/stickers/HypurrLiquid/hypurr4_big_face_no_bg.png'),
+        type: 'image',
+      },
+      {
+        id: 'hypurrliquid_hypurr5_big_face_no_bg',
+        source: require('../../assets/stickers/HypurrLiquid/hypurr5_big_face_no_bg.png'),
+        type: 'image',
+      },
+      {
+        id: 'hypurrliquid_hypurr6_big_face_no_bg',
+        source: require('../../assets/stickers/HypurrLiquid/hypurr6_big_face_no_bg.png'),
+        type: 'image',
+      },
+    ],
+  },
+];
+
+// Flat list of all stickers (blur first, then by collection)
+export const ALL_STICKERS: StickerItem[] = [
+  BLUR_STICKER,
+  ...STICKER_COLLECTIONS.flatMap(c => c.stickers),
+];
