@@ -219,13 +219,12 @@ const EditorScreen: React.FC<EditorScreenProps> = ({navigation, route}) => {
         const adjustedY = y - imageOffsetY;
         addStickerAtPosition(adjustedX, adjustedY);
       } else {
-        // Normal mode, deselect all and exit switch mode
+        // Deselect stickers and close picker, but stay in current mode
         deselectAll();
-        exitSwitchMode();
         setShowStickerPicker(false);
       }
     },
-    [isDrawingMode, isAddMode, pendingSticker, addStickerAtPosition, deselectAll, exitSwitchMode, imageOffsetX, imageOffsetY],
+    [isDrawingMode, isAddMode, pendingSticker, addStickerAtPosition, deselectAll, imageOffsetX, imageOffsetY],
   );
 
   // Drawing gesture handlers
@@ -487,7 +486,6 @@ const EditorScreen: React.FC<EditorScreenProps> = ({navigation, route}) => {
         visible={showHypurrPicker}
         onClose={() => {
           setShowHypurrPicker(false);
-          exitSwitchMode();
         }}
         onSwitchOne={handleSwitchOne}
         onSwitchAll={handleSwitchAll}
