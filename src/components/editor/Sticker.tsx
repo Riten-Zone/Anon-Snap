@@ -1,5 +1,5 @@
 import React, {useCallback, useMemo} from 'react';
-import {View, StyleSheet, TouchableOpacity} from 'react-native';
+import {View, StyleSheet, TouchableOpacity, Image} from 'react-native';
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
@@ -199,6 +199,12 @@ const Sticker: React.FC<StickerProps> = ({
             <View style={styles.blurPreview}>
               <PixelGrid width={sticker.width} height={sticker.height} seed={sticker.id} />
             </View>
+          ) : sticker.type === 'image' ? (
+            <Image
+              source={sticker.source as number}
+              style={styles.stickerImage}
+              resizeMode="contain"
+            />
           ) : (
             <Text style={styles.emoji}>{sticker.source as string}</Text>
           )}
@@ -259,6 +265,10 @@ const styles = StyleSheet.create({
   },
   emoji: {
     fontSize: 60,
+  },
+  stickerImage: {
+    width: '100%',
+    height: '100%',
   },
   controlButton: {
     position: 'absolute',

@@ -1,6 +1,6 @@
 export interface StickerData {
   id: string;
-  type: 'blur' | 'emoji';
+  type: 'blur' | 'emoji' | 'image';
   source: number | string; // require() for images or emoji string
   x: number;
   y: number;

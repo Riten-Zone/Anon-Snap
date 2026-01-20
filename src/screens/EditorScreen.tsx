@@ -1,4 +1,4 @@
-import React, {useState, useCallback} from 'react';
+import React, {useState, useCallback, useMemo} from 'react';
 import {
   View,
   Text,
@@ -13,7 +13,7 @@ import {GestureHandlerRootView, Gesture, GestureDetector} from 'react-native-ges
 import {runOnJS} from 'react-native-reanimated';
 import type {EditorScreenProps} from '../types';
 import type {StickerData, DetectedFace} from '../types';
-import {useStickers, EMOJI_STICKERS} from '../hooks';
+import {useStickers, EMOJI_STICKERS, HYPURR_STICKERS} from '../hooks';
 import {useDrawing} from '../hooks/useDrawing';
 import {detectFacesInImage} from '../services/FaceDetectionService';
 import {saveToGallery} from '../services/GalleryService';
@@ -24,6 +24,7 @@ import StickerPicker from '../components/editor/StickerPicker';
 import TopToolbar from '../components/editor/TopToolbar';
 import ShareSheet from '../components/share/ShareSheet';
 import DrawingCanvas from '../components/editor/DrawingCanvas';
+import HypurrPicker from '../components/editor/HypurrPicker';
 
 const {width: SCREEN_WIDTH, height: SCREEN_HEIGHT} = Dimensions.get('window');
 
@@ -37,6 +38,7 @@ const EditorScreen: React.FC<EditorScreenProps> = ({navigation, route}) => {
   const [displaySize, setDisplaySize] = useState({width: DISPLAY_AREA_WIDTH, height: DISPLAY_AREA_HEIGHT});
   const [showStickerPicker, setShowStickerPicker] = useState(false);
   const [showShareSheet, setShowShareSheet] = useState(false);
+  const [showHypurrPicker, setShowHypurrPicker] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
 
   const {
@@ -45,6 +47,9 @@ const EditorScreen: React.FC<EditorScreenProps> = ({navigation, route}) => {
     pendingEmoji,
     initializeBlurStickers,
     replaceWithEmoji,
+    replaceWithImage,
+    replaceAllWithImage,
+    replaceAllWithRandomImages,
     updateStickerPosition,
     updateStickerScale,
     updateStickerRotation,
@@ -164,16 +169,33 @@ const EditorScreen: React.FC<EditorScreenProps> = ({navigation, route}) => {
   );
 
   const handleSwitchBlur = useCallback(() => {
-    // Find a blur sticker and switch it to emoji
+    // Open the hypurr picker modal
+    setShowHypurrPicker(true);
+  }, []);
+
+  // Handle switching one blur sticker with selected hypurr
+  const handleSwitchOne = useCallback((imageSource: number) => {
     const blurSticker = stickers.find(s => s.type === 'blur');
     if (blurSticker) {
-      const randomEmoji =
-        EMOJI_STICKERS[Math.floor(Math.random() * EMOJI_STICKERS.length)].emoji;
-      replaceWithEmoji(blurSticker.id, randomEmoji);
-    } else {
-      Alert.alert('No blur to switch', 'All blurs have been replaced with stickers.');
+      replaceWithImage(blurSticker.id, imageSource);
     }
-  }, [stickers, replaceWithEmoji]);
+  }, [stickers, replaceWithImage]);
+
+  // Handle switching all blur stickers with selected hypurr
+  const handleSwitchAll = useCallback((imageSource: number) => {
+    replaceAllWithImage(imageSource);
+  }, [replaceAllWithImage]);
+
+  // Handle randomizing all blur stickers with random hypurr images
+  const handleRandomiseAll = useCallback(() => {
+    const allSources = HYPURR_STICKERS.map(s => s.source);
+    replaceAllWithRandomImages(allSources);
+  }, [replaceAllWithRandomImages]);
+
+  // Check if there are any blur stickers remaining
+  const hasBlurStickers = useMemo(() =>
+    stickers.some(s => s.type === 'blur'),
+  [stickers]);
 
   const handleBackgroundTapWithPosition = useCallback(
     (x: number, y: number) => {
@@ -443,6 +465,16 @@ const EditorScreen: React.FC<EditorScreenProps> = ({navigation, route}) => {
         onShareTelegram={handleShareTelegram}
         onShareOther={handleShareOther}
         isLoading={isExporting}
+      />
+
+      {/* Hypurr Picker */}
+      <HypurrPicker
+        visible={showHypurrPicker}
+        onClose={() => setShowHypurrPicker(false)}
+        onSwitchOne={handleSwitchOne}
+        onSwitchAll={handleSwitchAll}
+        onRandomiseAll={handleRandomiseAll}
+        hasBlurStickers={hasBlurStickers}
       />
     </GestureHandlerRootView>
   );

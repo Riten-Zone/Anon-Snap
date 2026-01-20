@@ -1,5 +1,6 @@
 import {Skia, BlurMask, rect, rrect} from '@shopify/react-native-skia';
 import RNFS from 'react-native-fs';
+import {Image as RNImage} from 'react-native';
 import type {StickerData, DrawingStroke} from '../types';
 
 // Pixel colors for drawing (same as DrawingCanvas)
@@ -16,6 +17,39 @@ const seededRandom = (seed: number): number => {
   const x = Math.sin(seed) * 10000;
   return x - Math.floor(x);
 };
+
+// Cache for loaded sticker images
+const stickerImageCache = new Map<number, ReturnType<typeof Skia.Image.MakeImageFromEncoded>>();
+
+// Helper to load image from require() source
+async function loadStickerImage(source: number): Promise<ReturnType<typeof Skia.Image.MakeImageFromEncoded> | null> {
+  // Check cache first
+  if (stickerImageCache.has(source)) {
+    return stickerImageCache.get(source) || null;
+  }
+
+  try {
+    const resolved = RNImage.resolveAssetSource(source);
+    if (!resolved?.uri) {
+      return null;
+    }
+
+    // Fetch the image data
+    const response = await fetch(resolved.uri);
+    const arrayBuffer = await response.arrayBuffer();
+    const data = Skia.Data.fromBytes(new Uint8Array(arrayBuffer));
+    const image = Skia.Image.MakeImageFromEncoded(data);
+
+    if (image) {
+      stickerImageCache.set(source, image);
+    }
+
+    return image;
+  } catch (error) {
+    console.error('Failed to load sticker image:', error);
+    return null;
+  }
+}
 
 // This service handles compositing stickers onto images using Skia's offscreen canvas
 
@@ -105,6 +139,20 @@ export async function compositeImage(
               pixelPaint,
             );
           }
+        }
+      } else if (sticker.type === 'image' && typeof sticker.source === 'number') {
+        // Draw image sticker
+        const stickerImage = await loadStickerImage(sticker.source);
+        if (stickerImage) {
+          const destRect = rect(0, 0, sticker.width, sticker.height);
+
+          // Create a rounded rect for oval/circular shape (same as blur stickers)
+          const roundedRect = rrect(destRect, sticker.width / 2, sticker.height / 2);
+          canvas.clipRRect(roundedRect);
+
+          // Draw the image to fill the sticker bounds
+          const srcRect = rect(0, 0, stickerImage.width(), stickerImage.height());
+          canvas.drawImageRect(stickerImage, srcRect, destRect, Skia.Paint());
         }
       } else if (sticker.type === 'emoji' && typeof sticker.source === 'string') {
         // Draw emoji text
