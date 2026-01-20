@@ -5,15 +5,16 @@ import {
   StyleSheet,
   ScrollView,
   TouchableOpacity,
+  Image,
 } from 'react-native';
 import {X} from 'lucide-react-native';
-import {EMOJI_STICKERS} from '../../hooks/useStickers';
+import {HYPURR_FACE_STICKERS} from '../../hooks/useStickers';
 import {colors} from '../../theme';
 
 interface StickerPickerProps {
   visible: boolean;
   onClose: () => void;
-  onSelectSticker: (emoji: string) => void;
+  onSelectSticker: (imageSource: number) => void;
 }
 
 const StickerPicker: React.FC<StickerPickerProps> = ({
@@ -35,16 +36,20 @@ const StickerPicker: React.FC<StickerPickerProps> = ({
         horizontal
         showsHorizontalScrollIndicator={false}
         contentContainerStyle={styles.scrollContent}>
-        {EMOJI_STICKERS.map(sticker => (
+        {HYPURR_FACE_STICKERS.map(sticker => (
           <TouchableOpacity
             key={sticker.id}
             style={styles.stickerItem}
             onPress={() => {
-              onSelectSticker(sticker.emoji);
+              onSelectSticker(sticker.source);
               onClose();
             }}
             activeOpacity={0.7}>
-            <Text style={styles.stickerEmoji}>{sticker.emoji}</Text>
+            <Image
+              source={sticker.source}
+              style={styles.stickerImage}
+              resizeMode="contain"
+            />
             <Text style={styles.stickerLabel}>{sticker.label}</Text>
           </TouchableOpacity>
         ))}
@@ -96,10 +101,11 @@ const styles = StyleSheet.create({
     padding: 10,
     borderRadius: 12,
     backgroundColor: colors.gray700,
-    minWidth: 70,
+    minWidth: 80,
   },
-  stickerEmoji: {
-    fontSize: 40,
+  stickerImage: {
+    width: 50,
+    height: 50,
     marginBottom: 5,
   },
   stickerLabel: {

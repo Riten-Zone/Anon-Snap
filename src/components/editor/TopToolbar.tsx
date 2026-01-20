@@ -1,40 +1,44 @@
 import React from 'react';
-import {View, Text, StyleSheet, TouchableOpacity} from 'react-native';
+import {View, Text, StyleSheet, TouchableOpacity, Image} from 'react-native';
 import {ChevronLeft, Undo2, Shuffle, Plus, Pencil} from 'lucide-react-native';
 import {colors} from '../../theme';
 
 interface TopToolbarProps {
   onAddSticker: () => void;
-  onSwitchBlur: () => void;
+  onSwitchSticker: () => void;
   onClose: () => void;
   isAddMode: boolean;
+  isSwitchMode: boolean;
   onExitAddMode: () => void;
+  onExitSwitchMode: () => void;
   isDrawingMode: boolean;
   onToggleDrawing: () => void;
   onUndo: () => void;
   canUndo: boolean;
-  pendingEmoji?: string | null;
+  pendingSticker?: number | null;
   onOpenPicker?: () => void;
 }
 
 const TopToolbar: React.FC<TopToolbarProps> = ({
   onAddSticker,
-  onSwitchBlur,
+  onSwitchSticker,
   onClose,
   isAddMode,
+  isSwitchMode,
   onExitAddMode,
+  onExitSwitchMode,
   isDrawingMode,
   onToggleDrawing,
   onUndo,
   canUndo,
-  pendingEmoji,
+  pendingSticker,
   onOpenPicker,
 }) => {
-  const isInMode = isAddMode || isDrawingMode;
-  const showUndo = isInMode && canUndo;
+  const isInMode = isAddMode || isDrawingMode || isSwitchMode;
+  const showUndo = (isAddMode || isDrawingMode) && canUndo;
 
   // Determine which mode is active
-  const activeMode = isDrawingMode ? 'draw' : isAddMode ? 'add' : null;
+  const activeMode = isDrawingMode ? 'draw' : isAddMode ? 'add' : isSwitchMode ? 'switch' : null;
 
   return (
     <View style={styles.container}>
@@ -67,6 +71,15 @@ const TopToolbar: React.FC<TopToolbarProps> = ({
                   <Text style={[styles.toolLabel, styles.toolLabelActive]}>Add</Text>
                 </TouchableOpacity>
               )}
+              {activeMode === 'switch' && (
+                <TouchableOpacity
+                  style={[styles.toolButton, styles.toolButtonActive]}
+                  onPress={onExitSwitchMode}
+                  activeOpacity={0.7}>
+                  <Shuffle size={24} color={colors.black} strokeWidth={1.5} />
+                  <Text style={[styles.toolLabel, styles.toolLabelActive]}>Switch</Text>
+                </TouchableOpacity>
+              )}
               {activeMode === 'draw' && (
                 <TouchableOpacity
                   style={[styles.toolButton, styles.toolButtonActive]}
@@ -78,13 +91,17 @@ const TopToolbar: React.FC<TopToolbarProps> = ({
               )}
             </View>
 
-            {/* Emoji preview - shows below Add button when emoji is selected */}
-            {activeMode === 'add' && pendingEmoji && onOpenPicker && (
+            {/* Sticker preview - shows below Add button when sticker is selected */}
+            {activeMode === 'add' && pendingSticker && onOpenPicker && (
               <TouchableOpacity
-                style={styles.emojiPreview}
+                style={styles.stickerPreview}
                 onPress={onOpenPicker}
                 activeOpacity={0.7}>
-                <Text style={styles.emojiText}>{pendingEmoji}</Text>
+                <Image
+                  source={pendingSticker}
+                  style={styles.stickerPreviewImage}
+                  resizeMode="contain"
+                />
               </TouchableOpacity>
             )}
           </>
@@ -93,7 +110,7 @@ const TopToolbar: React.FC<TopToolbarProps> = ({
           <>
             <TouchableOpacity
               style={styles.toolButton}
-              onPress={onSwitchBlur}
+              onPress={onSwitchSticker}
               activeOpacity={0.7}>
               <Shuffle size={24} color={colors.white} strokeWidth={1.5} />
               <Text style={styles.toolLabel}>Switch</Text>
@@ -178,16 +195,18 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-  emojiPreview: {
+  stickerPreview: {
     width: 48,
     height: 48,
     borderRadius: 24,
     backgroundColor: 'rgba(0, 0, 0, 0.5)',
     justifyContent: 'center',
     alignItems: 'center',
+    overflow: 'hidden',
   },
-  emojiText: {
-    fontSize: 28,
+  stickerPreviewImage: {
+    width: 36,
+    height: 36,
   },
 });
 

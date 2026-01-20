@@ -10,13 +10,13 @@ import {
   Dimensions,
 } from 'react-native';
 import {X} from 'lucide-react-native';
-import {HYPURR_STICKERS} from '../../hooks/useStickers';
+import {HYPURR_FACE_STICKERS} from '../../hooks/useStickers';
 import {colors} from '../../theme';
 
 const {width: SCREEN_WIDTH} = Dimensions.get('window');
 const GRID_PADDING = 16;
 const GRID_GAP = 12;
-const NUM_COLUMNS = 5;
+const NUM_COLUMNS = 4;
 const ITEM_SIZE = (SCREEN_WIDTH - GRID_PADDING * 2 - GRID_GAP * (NUM_COLUMNS - 1)) / NUM_COLUMNS;
 
 interface HypurrPickerProps {
@@ -25,7 +25,7 @@ interface HypurrPickerProps {
   onSwitchOne: (imageSource: number) => void;
   onSwitchAll: (imageSource: number) => void;
   onRandomiseAll: () => void;
-  hasBlurStickers: boolean;
+  hasStickers: boolean;
 }
 
 const HypurrPicker: React.FC<HypurrPickerProps> = ({
@@ -34,7 +34,7 @@ const HypurrPicker: React.FC<HypurrPickerProps> = ({
   onSwitchOne,
   onSwitchAll,
   onRandomiseAll,
-  hasBlurStickers,
+  hasStickers,
 }) => {
   const [selectedSource, setSelectedSource] = useState<number | null>(null);
 
@@ -96,9 +96,9 @@ const HypurrPicker: React.FC<HypurrPickerProps> = ({
 
           {/* Subtitle */}
           <Text style={styles.subtitle}>
-            {hasBlurStickers
-              ? 'Select a hypurr to replace blur stickers'
-              : 'No blur stickers to replace'}
+            {hasStickers
+              ? 'Select a hypurr to replace stickers'
+              : 'No stickers to replace'}
           </Text>
 
           {/* Grid of hypurr images */}
@@ -106,7 +106,7 @@ const HypurrPicker: React.FC<HypurrPickerProps> = ({
             style={styles.scrollView}
             contentContainerStyle={styles.gridContainer}
             showsVerticalScrollIndicator={false}>
-            {HYPURR_STICKERS.map(sticker => (
+            {HYPURR_FACE_STICKERS.map(sticker => (
               <TouchableOpacity
                 key={sticker.id}
                 style={[
@@ -129,15 +129,15 @@ const HypurrPicker: React.FC<HypurrPickerProps> = ({
             <TouchableOpacity
               style={[
                 styles.actionButton,
-                (!selectedSource || !hasBlurStickers) && styles.buttonDisabled,
+                (!selectedSource || !hasStickers) && styles.buttonDisabled,
               ]}
               onPress={handleSwitchOne}
-              disabled={!selectedSource || !hasBlurStickers}
+              disabled={!selectedSource || !hasStickers}
               activeOpacity={0.7}>
               <Text
                 style={[
                   styles.buttonText,
-                  (!selectedSource || !hasBlurStickers) &&
+                  (!selectedSource || !hasStickers) &&
                     styles.buttonTextDisabled,
                 ]}>
                 Switch One
@@ -147,15 +147,15 @@ const HypurrPicker: React.FC<HypurrPickerProps> = ({
             <TouchableOpacity
               style={[
                 styles.actionButton,
-                (!selectedSource || !hasBlurStickers) && styles.buttonDisabled,
+                (!selectedSource || !hasStickers) && styles.buttonDisabled,
               ]}
               onPress={handleSwitchAll}
-              disabled={!selectedSource || !hasBlurStickers}
+              disabled={!selectedSource || !hasStickers}
               activeOpacity={0.7}>
               <Text
                 style={[
                   styles.buttonText,
-                  (!selectedSource || !hasBlurStickers) &&
+                  (!selectedSource || !hasStickers) &&
                     styles.buttonTextDisabled,
                 ]}>
                 Switch All
@@ -166,16 +166,16 @@ const HypurrPicker: React.FC<HypurrPickerProps> = ({
               style={[
                 styles.actionButton,
                 styles.randomButton,
-                !hasBlurStickers && styles.buttonDisabled,
+                !hasStickers && styles.buttonDisabled,
               ]}
               onPress={handleRandomiseAll}
-              disabled={!hasBlurStickers}
+              disabled={!hasStickers}
               activeOpacity={0.7}>
               <Text
                 style={[
                   styles.buttonText,
                   styles.randomButtonText,
-                  !hasBlurStickers && styles.buttonTextDisabled,
+                  !hasStickers && styles.buttonTextDisabled,
                 ]}>
                 Randomise All
               </Text>

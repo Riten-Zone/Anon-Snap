@@ -13,7 +13,7 @@ import {GestureHandlerRootView, Gesture, GestureDetector} from 'react-native-ges
 import {runOnJS} from 'react-native-reanimated';
 import type {EditorScreenProps} from '../types';
 import type {StickerData, DetectedFace} from '../types';
-import {useStickers, EMOJI_STICKERS, HYPURR_STICKERS} from '../hooks';
+import {useStickers, HYPURR_FACE_STICKERS} from '../hooks';
 import {useDrawing} from '../hooks/useDrawing';
 import {detectFacesInImage} from '../services/FaceDetectionService';
 import {saveToGallery} from '../services/GalleryService';
@@ -44,9 +44,9 @@ const EditorScreen: React.FC<EditorScreenProps> = ({navigation, route}) => {
   const {
     stickers,
     isAddMode,
-    pendingEmoji,
+    isSwitchMode,
+    pendingSticker,
     initializeBlurStickers,
-    replaceWithEmoji,
     replaceWithImage,
     replaceAllWithImage,
     replaceAllWithRandomImages,
@@ -55,9 +55,12 @@ const EditorScreen: React.FC<EditorScreenProps> = ({navigation, route}) => {
     updateStickerRotation,
     deleteSticker,
     selectSticker,
+    selectedStickerId,
     deselectAll,
     enterAddMode,
     exitAddMode,
+    enterSwitchMode,
+    exitSwitchMode,
     addStickerAtCenter,
     addStickerAtPosition,
     undoLastSticker,
@@ -157,45 +160,47 @@ const EditorScreen: React.FC<EditorScreenProps> = ({navigation, route}) => {
     setShowStickerPicker(true);
   }, [enterAddMode]);
 
-  // Called when selecting an emoji from picker - place at center, keep picker open
-  const handleSelectEmoji = useCallback(
-    (emoji: string) => {
+  // Called when selecting a sticker from picker - place at center, keep picker open
+  const handleSelectSticker = useCallback(
+    (imageSource: number) => {
       const centerX = displaySize.width / 2;
       const centerY = displaySize.height / 2;
-      addStickerAtCenter(emoji, centerX, centerY);
-      // Keep picker open so user can add more emojis
+      addStickerAtCenter(imageSource, centerX, centerY);
+      // Keep picker open so user can add more stickers
     },
     [displaySize, addStickerAtCenter],
   );
 
-  const handleSwitchBlur = useCallback(() => {
-    // Open the hypurr picker modal
+  const handleSwitchMode = useCallback(() => {
+    // Enter switch mode and open the hypurr picker modal
+    enterSwitchMode();
     setShowHypurrPicker(true);
-  }, []);
+  }, [enterSwitchMode]);
 
-  // Handle switching one blur sticker with selected hypurr
+  // Handle switching one sticker with selected hypurr (selected or first available)
   const handleSwitchOne = useCallback((imageSource: number) => {
-    const blurSticker = stickers.find(s => s.type === 'blur');
-    if (blurSticker) {
-      replaceWithImage(blurSticker.id, imageSource);
+    // If a sticker is selected, switch that one; otherwise switch the first sticker
+    const stickerToSwitch = selectedStickerId
+      ? stickers.find(s => s.id === selectedStickerId)
+      : stickers[0];
+    if (stickerToSwitch) {
+      replaceWithImage(stickerToSwitch.id, imageSource);
     }
-  }, [stickers, replaceWithImage]);
+  }, [stickers, selectedStickerId, replaceWithImage]);
 
-  // Handle switching all blur stickers with selected hypurr
+  // Handle switching all stickers with selected hypurr
   const handleSwitchAll = useCallback((imageSource: number) => {
     replaceAllWithImage(imageSource);
   }, [replaceAllWithImage]);
 
-  // Handle randomizing all blur stickers with random hypurr images
+  // Handle randomizing all stickers with random hypurr images
   const handleRandomiseAll = useCallback(() => {
-    const allSources = HYPURR_STICKERS.map(s => s.source);
+    const allSources = HYPURR_FACE_STICKERS.map(s => s.source);
     replaceAllWithRandomImages(allSources);
   }, [replaceAllWithRandomImages]);
 
-  // Check if there are any blur stickers remaining
-  const hasBlurStickers = useMemo(() =>
-    stickers.some(s => s.type === 'blur'),
-  [stickers]);
+  // Check if there are any stickers
+  const hasStickers = useMemo(() => stickers.length > 0, [stickers]);
 
   const handleBackgroundTapWithPosition = useCallback(
     (x: number, y: number) => {
@@ -203,18 +208,19 @@ const EditorScreen: React.FC<EditorScreenProps> = ({navigation, route}) => {
         // Don't handle taps in drawing mode
         return;
       }
-      if (isAddMode && pendingEmoji) {
+      if (isAddMode && pendingSticker) {
         // Adjust for image layer offset
         const adjustedX = x - imageOffsetX;
         const adjustedY = y - imageOffsetY;
         addStickerAtPosition(adjustedX, adjustedY);
       } else {
-        // Normal mode, deselect all
+        // Normal mode, deselect all and exit switch mode
         deselectAll();
+        exitSwitchMode();
         setShowStickerPicker(false);
       }
     },
-    [isDrawingMode, isAddMode, pendingEmoji, addStickerAtPosition, deselectAll, imageOffsetX, imageOffsetY],
+    [isDrawingMode, isAddMode, pendingSticker, addStickerAtPosition, deselectAll, exitSwitchMode, imageOffsetX, imageOffsetY],
   );
 
   // Drawing gesture handlers
@@ -429,15 +435,17 @@ const EditorScreen: React.FC<EditorScreenProps> = ({navigation, route}) => {
       {/* Top Toolbar */}
       <TopToolbar
         onAddSticker={handleOpenAddMode}
-        onSwitchBlur={handleSwitchBlur}
+        onSwitchSticker={handleSwitchMode}
         onClose={handleClose}
         isAddMode={isAddMode}
+        isSwitchMode={isSwitchMode}
         onExitAddMode={exitAddMode}
+        onExitSwitchMode={exitSwitchMode}
         isDrawingMode={isDrawingMode}
         onToggleDrawing={toggleDrawingMode}
         onUndo={isDrawingMode ? undoLastStroke : undoLastSticker}
-        canUndo={isDrawingMode ? strokes.length > 0 : stickers.filter(s => s.type === 'emoji').length > 0}
-        pendingEmoji={pendingEmoji}
+        canUndo={isDrawingMode ? strokes.length > 0 : stickers.filter(s => s.type === 'image').length > 0}
+        pendingSticker={pendingSticker}
         onOpenPicker={() => setShowStickerPicker(true)}
       />
 
@@ -453,7 +461,7 @@ const EditorScreen: React.FC<EditorScreenProps> = ({navigation, route}) => {
       <StickerPicker
         visible={showStickerPicker}
         onClose={() => setShowStickerPicker(false)}
-        onSelectSticker={handleSelectEmoji}
+        onSelectSticker={handleSelectSticker}
       />
 
       {/* Share Sheet */}
@@ -470,11 +478,14 @@ const EditorScreen: React.FC<EditorScreenProps> = ({navigation, route}) => {
       {/* Hypurr Picker */}
       <HypurrPicker
         visible={showHypurrPicker}
-        onClose={() => setShowHypurrPicker(false)}
+        onClose={() => {
+          setShowHypurrPicker(false);
+          exitSwitchMode();
+        }}
         onSwitchOne={handleSwitchOne}
         onSwitchAll={handleSwitchAll}
         onRandomiseAll={handleRandomiseAll}
-        hasBlurStickers={hasBlurStickers}
+        hasStickers={hasStickers}
       />
     </GestureHandlerRootView>
   );

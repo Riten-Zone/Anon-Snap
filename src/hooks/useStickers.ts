@@ -2,30 +2,12 @@ import {useCallback, useState} from 'react';
 import type {StickerData, DetectedFace} from '../types';
 import {generateId} from '../utils';
 
-// Emoji sticker sources - these will be rendered as text
-export const EMOJI_STICKERS = [
-  {id: 'smile', emoji: '😊', label: 'Smile'},
-  {id: 'sunglasses', emoji: '😎', label: 'Cool'},
-  {id: 'mask', emoji: '🎭', label: 'Mask'},
-  {id: 'robot', emoji: '🤖', label: 'Robot'},
-  {id: 'star', emoji: '⭐', label: 'Star'},
-  {id: 'heart', emoji: '❤️', label: 'Heart'},
-  {id: 'fire', emoji: '🔥', label: 'Fire'},
-  {id: 'ghost', emoji: '👻', label: 'Ghost'},
-];
-
-// Hypurr image sticker sources - these will be rendered as images
-export const HYPURR_STICKERS = [
-  {id: 'hypurr1', source: require('../../assets/hypurr/hypurr.png'), label: 'Hypurr 1'},
-  {id: 'hypurr2', source: require('../../assets/hypurr/hypurr2.png'), label: 'Hypurr 2'},
-  {id: 'hypurr3', source: require('../../assets/hypurr/hypurr3.png'), label: 'Hypurr 3'},
-  {id: 'hypurr4', source: require('../../assets/hypurr/hypurr4.png'), label: 'Hypurr 4'},
-  {id: 'hypurr5', source: require('../../assets/hypurr/hypurr5.png'), label: 'Hypurr 5'},
-  {id: 'hypurr6', source: require('../../assets/hypurr/hypurr6.png'), label: 'Hypurr 6'},
-  {id: 'hypurr7', source: require('../../assets/hypurr/hypurr7.png'), label: 'Hypurr 7'},
-  {id: 'hypurr8', source: require('../../assets/hypurr/hypurr8.png'), label: 'Hypurr 8'},
-  {id: 'hypurr9', source: require('../../assets/hypurr/hypurr9.png'), label: 'Hypurr 9'},
-  {id: 'hypurr10', source: require('../../assets/hypurr/hypurr10.png'), label: 'Hypurr 10'},
+// Hypurr face sticker sources - these will be rendered as images
+export const HYPURR_FACE_STICKERS = [
+  {id: 'face1', source: require('../../assets/hypurr_face/hypurr_1_big_face_no_bg.png'), label: 'Hypurr 1'},
+  {id: 'face2', source: require('../../assets/hypurr_face/hypurr2_big_face_no_bg.png'), label: 'Hypurr 2'},
+  {id: 'face3', source: require('../../assets/hypurr_face/hypurr3_big_face__no_bg.png'), label: 'Hypurr 3'},
+  {id: 'face4', source: require('../../assets/hypurr_face/hypurr4_big_face_no_bg.png'), label: 'Hypurr 4'},
 ];
 
 export function useStickers(initialFaces: DetectedFace[] = []) {
@@ -34,7 +16,8 @@ export function useStickers(initialFaces: DetectedFace[] = []) {
     null,
   );
   const [isAddMode, setIsAddMode] = useState(false);
-  const [pendingEmoji, setPendingEmoji] = useState<string | null>(null);
+  const [isSwitchMode, setIsSwitchMode] = useState(false);
+  const [pendingSticker, setPendingSticker] = useState<number | null>(null);
 
   // Initialize blur stickers for detected faces
   const initializeBlurStickers = useCallback((faces: DetectedFace[]) => {
@@ -60,13 +43,13 @@ export function useStickers(initialFaces: DetectedFace[] = []) {
     setStickers(blurStickers);
   }, []);
 
-  // Add a new sticker
+  // Add a new image sticker
   const addSticker = useCallback(
-    (emoji: string, x: number, y: number) => {
+    (imageSource: number, x: number, y: number) => {
       const newSticker: StickerData = {
         id: generateId(),
-        type: 'emoji',
-        source: emoji,
+        type: 'image',
+        source: imageSource,
         x: x - 50, // Center the sticker
         y: y - 50,
         width: 100,
@@ -84,15 +67,6 @@ export function useStickers(initialFaces: DetectedFace[] = []) {
     [],
   );
 
-  // Replace a blur sticker with an emoji
-  const replaceWithEmoji = useCallback((stickerId: string, emoji: string) => {
-    setStickers(prev =>
-      prev.map(s =>
-        s.id === stickerId ? {...s, type: 'emoji', source: emoji} : s,
-      ),
-    );
-  }, []);
-
   // Replace a single blur sticker with a hypurr image
   const replaceWithImage = useCallback((stickerId: string, imageSource: number) => {
     setStickers(prev =>
@@ -102,24 +76,19 @@ export function useStickers(initialFaces: DetectedFace[] = []) {
     );
   }, []);
 
-  // Replace ALL blur stickers with the same hypurr image
+  // Replace ALL stickers with the same hypurr image
   const replaceAllWithImage = useCallback((imageSource: number) => {
     setStickers(prev =>
-      prev.map(s =>
-        s.type === 'blur' ? {...s, type: 'image' as const, source: imageSource} : s,
-      ),
+      prev.map(s => ({...s, type: 'image' as const, source: imageSource})),
     );
   }, []);
 
-  // Replace ALL blur stickers with random hypurr images
+  // Replace ALL stickers with random hypurr images
   const replaceAllWithRandomImages = useCallback((imageSources: number[]) => {
     setStickers(prev =>
       prev.map(s => {
-        if (s.type === 'blur') {
-          const randomSource = imageSources[Math.floor(Math.random() * imageSources.length)];
-          return {...s, type: 'image' as const, source: randomSource};
-        }
-        return s;
+        const randomSource = imageSources[Math.floor(Math.random() * imageSources.length)];
+        return {...s, type: 'image' as const, source: randomSource};
       }),
     );
   }, []);
@@ -167,42 +136,54 @@ export function useStickers(initialFaces: DetectedFace[] = []) {
     setStickers(prev => prev.map(s => ({...s, isSelected: false})));
   }, []);
 
-  // Enter add mode (without emoji yet - picker will be shown)
+  // Enter add mode (without sticker yet - picker will be shown)
   const enterAddMode = useCallback(() => {
     setIsAddMode(true);
+    setIsSwitchMode(false);
+  }, []);
+
+  // Exit add mode
+  const exitAddMode = useCallback(() => {
+    setPendingSticker(null);
+    setIsAddMode(false);
+  }, []);
+
+  // Enter switch mode
+  const enterSwitchMode = useCallback(() => {
+    setIsSwitchMode(true);
+    setIsAddMode(false);
+  }, []);
+
+  // Exit switch mode
+  const exitSwitchMode = useCallback(() => {
+    setIsSwitchMode(false);
   }, []);
 
   // Add sticker at center of screen and set as pending for more placements
   const addStickerAtCenter = useCallback(
-    (emoji: string, centerX: number, centerY: number) => {
-      addSticker(emoji, centerX, centerY);
-      setPendingEmoji(emoji); // Set as pending so tapping screen adds more
+    (imageSource: number, centerX: number, centerY: number) => {
+      addSticker(imageSource, centerX, centerY);
+      setPendingSticker(imageSource); // Set as pending so tapping screen adds more
     },
     [addSticker],
   );
 
-  // Exit add mode
-  const exitAddMode = useCallback(() => {
-    setPendingEmoji(null);
-    setIsAddMode(false);
-  }, []);
-
   // Add sticker at position (used when tapping in add mode)
   const addStickerAtPosition = useCallback(
     (x: number, y: number) => {
-      if (!pendingEmoji) return;
-      addSticker(pendingEmoji, x, y);
+      if (!pendingSticker) return;
+      addSticker(pendingSticker, x, y);
     },
-    [pendingEmoji, addSticker],
+    [pendingSticker, addSticker],
   );
 
-  // Undo last added sticker (removes the most recently added emoji sticker)
+  // Undo last added sticker (removes the most recently added image sticker)
   const undoLastSticker = useCallback(() => {
     setStickers(prev => {
-      // Find the last emoji sticker (not blur)
-      const lastEmojiIndex = prev.map(s => s.type).lastIndexOf('emoji');
-      if (lastEmojiIndex === -1) return prev;
-      return prev.filter((_, index) => index !== lastEmojiIndex);
+      // Find the last image sticker (not blur)
+      const lastImageIndex = prev.map(s => s.type).lastIndexOf('image');
+      if (lastImageIndex === -1) return prev;
+      return prev.filter((_, index) => index !== lastImageIndex);
     });
   }, []);
 
@@ -210,10 +191,10 @@ export function useStickers(initialFaces: DetectedFace[] = []) {
     stickers,
     selectedStickerId,
     isAddMode,
-    pendingEmoji,
+    isSwitchMode,
+    pendingSticker,
     initializeBlurStickers,
     addSticker,
-    replaceWithEmoji,
     replaceWithImage,
     replaceAllWithImage,
     replaceAllWithRandomImages,
@@ -225,6 +206,8 @@ export function useStickers(initialFaces: DetectedFace[] = []) {
     deselectAll,
     enterAddMode,
     exitAddMode,
+    enterSwitchMode,
+    exitSwitchMode,
     addStickerAtPosition,
     addStickerAtCenter,
     undoLastSticker,
