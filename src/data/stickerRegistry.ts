@@ -15,7 +15,7 @@ export interface StickerCollection {
 // Blur sticker (always first)
 export const BLUR_STICKER: StickerItem = {
   id: 'blur',
-  source: require('../../assets/stickers/blur_icon.png'),
+  source: require('../../assets/stickers/blur_icon_oval.png'),
   type: 'blur',
 };
 
@@ -24,6 +24,11 @@ export const STICKER_COLLECTIONS: StickerCollection[] = [
   {
     name: 'HypurrCo',
     stickers: [
+      {
+        id: 'hypurrco_hypurr11_no_bg',
+        source: require('../../assets/stickers/HypurrCo/hypurr11_no_bg.png'),
+        type: 'image',
+      },
       {
         id: 'hypurrco_hypurr7_big_face_no_bg',
         source: require('../../assets/stickers/HypurrCo/hypurr7_big_face_no_bg.png'),

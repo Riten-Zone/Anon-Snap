@@ -66,8 +66,8 @@ export interface StickerCollection {
 // Blur sticker (always first)
 `;
 
-  // Add blur sticker if exists
-  const blurFile = rootFiles.find(f => f.includes('blur'));
+  // Add blur sticker if exists (prefer oval version)
+  const blurFile = rootFiles.find(f => f === 'blur_icon_oval.png') || rootFiles.find(f => f.includes('blur'));
   if (blurFile) {
     output += `export const BLUR_STICKER: StickerItem = {
   id: 'blur',

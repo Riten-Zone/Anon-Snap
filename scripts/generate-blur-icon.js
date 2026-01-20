@@ -5,7 +5,7 @@ const path = require('path');
 // Configuration
 const SIZE = 1024;
 const PIXEL_SIZE = Math.floor(SIZE / 10); // 10x10 grid of pixels
-const OUTPUT_PATH = path.join(__dirname, '../assets/hypurr_face/blur_icon.png');
+const OUTPUT_PATH = path.join(__dirname, '../assets/stickers/blur_icon_oval.png');
 
 // Grayscale colors used in the blur effect (same as in the app)
 const PIXEL_COLORS = [
@@ -50,8 +50,8 @@ const png = new PNG({
 const random = seededRandom(42);
 const centerX = SIZE / 2;
 const centerY = SIZE / 2;
-const radiusX = SIZE * 0.45; // 90% of half width
-const radiusY = SIZE * 0.48; // 96% of half height (slightly taller)
+const radiusX = SIZE * 0.32; // 64% of half width (narrower for oval)
+const radiusY = SIZE * 0.46; // 92% of half height (taller for oval)
 
 // Pre-generate pixel colors for the grid
 const gridCols = Math.ceil(SIZE / PIXEL_SIZE);
