@@ -78,6 +78,8 @@ const EditorScreen: React.FC<EditorScreenProps> = ({navigation, route}) => {
     addPoint,
     endStroke,
     undoLastStroke,
+    redoLastStroke,
+    undoneStrokes,
   } = useDrawing();
 
   // Calculate image offset early so it can be used in callbacks
@@ -448,8 +450,8 @@ const EditorScreen: React.FC<EditorScreenProps> = ({navigation, route}) => {
         onToggleDrawing={toggleDrawingMode}
         onUndo={isDrawingMode ? undoLastStroke : undoLastSticker}
         canUndo={isDrawingMode ? strokes.length > 0 : stickers.filter(s => s.type === 'image').length > 0}
-        onRedo={redoLastSticker}
-        canRedo={undoneStickers.length > 0}
+        onRedo={isDrawingMode ? redoLastStroke : redoLastSticker}
+        canRedo={isDrawingMode ? undoneStrokes.length > 0 : undoneStickers.length > 0}
         pendingSticker={pendingSticker}
         onOpenPicker={() => setShowStickerPicker(true)}
       />

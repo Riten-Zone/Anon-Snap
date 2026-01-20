@@ -15,8 +15,8 @@ interface TopToolbarProps {
   onToggleDrawing: () => void;
   onUndo: () => void;
   canUndo: boolean;
-  onRedo?: () => void;
-  canRedo?: boolean;
+  onRedo: () => void;
+  canRedo: boolean;
   pendingSticker?: {source: number; type: 'image' | 'blur'} | null;
   onOpenPicker?: () => void;
 }
@@ -39,8 +39,6 @@ const TopToolbar: React.FC<TopToolbarProps> = ({
   onOpenPicker,
 }) => {
   const isInMode = isAddMode || isDrawingMode || isSwitchMode;
-  const showUndo = (isAddMode || isDrawingMode) && canUndo;
-  const showRedo = isAddMode && canRedo;
 
   // Determine which mode is active
   const activeMode = isDrawingMode ? 'draw' : isAddMode ? 'add' : isSwitchMode ? 'switch' : null;
@@ -69,25 +67,23 @@ const TopToolbar: React.FC<TopToolbarProps> = ({
           // Active mode view - undo (if available), selected tool, and emoji preview
           <>
             <View style={styles.activeModeRow}>
-              {/* Undo button - shows to the left of selected tool when available */}
-              {showUndo && (
-                <TouchableOpacity
-                  style={styles.undoButton}
-                  onPress={onUndo}
-                  activeOpacity={0.7}>
-                  <Undo2 size={22} color={colors.white} strokeWidth={2} />
-                </TouchableOpacity>
-              )}
+              {/* Undo button - always visible, greyed out when disabled */}
+              <TouchableOpacity
+                style={[styles.undoButton, {opacity: canUndo ? 1 : 0.3}]}
+                onPress={onUndo}
+                activeOpacity={0.7}
+                disabled={!canUndo}>
+                <Undo2 size={22} color={colors.white} strokeWidth={2} />
+              </TouchableOpacity>
 
-              {/* Redo button - shows to the right of undo when available (Add mode only) */}
-              {showRedo && onRedo && (
-                <TouchableOpacity
-                  style={styles.undoButton}
-                  onPress={onRedo}
-                  activeOpacity={0.7}>
-                  <Redo2 size={22} color={colors.white} strokeWidth={2} />
-                </TouchableOpacity>
-              )}
+              {/* Redo button - always visible, greyed out when disabled */}
+              <TouchableOpacity
+                style={[styles.undoButton, {opacity: canRedo ? 1 : 0.3}]}
+                onPress={onRedo}
+                activeOpacity={0.7}
+                disabled={!canRedo}>
+                <Redo2 size={22} color={colors.white} strokeWidth={2} />
+              </TouchableOpacity>
 
               {/* Selected tool button */}
               {activeMode === 'add' && (
