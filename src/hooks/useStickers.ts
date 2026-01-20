@@ -1,7 +1,10 @@
 import {useCallback, useState} from 'react';
 import type {StickerData, DetectedFace} from '../types';
 import {generateId} from '../utils';
-import {ALL_STICKERS} from '../data/stickerRegistry';
+import {ALL_STICKERS, STICKER_COLLECTIONS} from '../data/stickerRegistry';
+
+// Default sticker for detected faces (hypurr13_no_bg)
+const DEFAULT_FACE_STICKER = STICKER_COLLECTIONS[0].stickers[2];
 
 // Re-export for backward compatibility
 export const HYPURR_FACE_STICKERS = ALL_STICKERS;
@@ -15,18 +18,17 @@ export function useStickers(initialFaces: DetectedFace[] = []) {
   const [isSwitchMode, setIsSwitchMode] = useState(false);
   const [pendingSticker, setPendingSticker] = useState<{source: number; type: 'image' | 'blur'} | null>(null);
 
-  // Initialize blur stickers for detected faces
+  // Initialize stickers for detected faces (uses hypurr13 by default)
   const initializeBlurStickers = useCallback((faces: DetectedFace[]) => {
-    const blurStickers: StickerData[] = faces.map(face => {
-      // Make the blur area more oval-shaped (faces are taller than wide)
+    const faceStickers: StickerData[] = faces.map(face => {
       const width = face.bounds.width;
-      const height = face.bounds.height * 1.3; // Extend height for oval shape
-      const y = face.bounds.y - (height - face.bounds.height) / 2; // Center vertically
+      const height = face.bounds.height * 1.3;
+      const y = face.bounds.y - (height - face.bounds.height) / 2;
 
       return {
         id: generateId(),
-        type: 'blur',
-        source: 'blur',
+        type: 'image',
+        source: DEFAULT_FACE_STICKER.source,
         x: face.bounds.x,
         y: y,
         width: width,
@@ -36,7 +38,7 @@ export function useStickers(initialFaces: DetectedFace[] = []) {
         isSelected: false,
       };
     });
-    setStickers(blurStickers);
+    setStickers(faceStickers);
   }, []);
 
   // Add a new sticker (image or blur)
