@@ -30,6 +30,31 @@ export const STICKER_COLLECTIONS: StickerCollection[] = [
         type: 'image',
       },
       {
+        id: 'hypurrco_hypurr12_no_bg_macdonald',
+        source: require('../../assets/stickers/HypurrCo/hypurr12_no_bg_macdonald.png'),
+        type: 'image',
+      },
+      {
+        id: 'hypurrco_hypurr13_no_bg',
+        source: require('../../assets/stickers/HypurrCo/hypurr13_no_bg.png'),
+        type: 'image',
+      },
+      {
+        id: 'hypurrco_hypurr14_no_bg_wagmi',
+        source: require('../../assets/stickers/HypurrCo/hypurr14_no_bg_wagmi.png'),
+        type: 'image',
+      },
+      {
+        id: 'hypurrco_hypurr15_no_bg_zzz_cropped',
+        source: require('../../assets/stickers/HypurrCo/hypurr15_no_bg_zzz_cropped.png'),
+        type: 'image',
+      },
+      {
+        id: 'hypurrco_hypurr16_no_bg_sleeping',
+        source: require('../../assets/stickers/HypurrCo/hypurr16_no_bg_sleeping.png'),
+        type: 'image',
+      },
+      {
         id: 'hypurrco_hypurr7_big_face_no_bg',
         source: require('../../assets/stickers/HypurrCo/hypurr7_big_face_no_bg.png'),
         type: 'image',
