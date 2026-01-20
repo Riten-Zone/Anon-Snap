@@ -40,9 +40,22 @@ const TopToolbar: React.FC<TopToolbarProps> = ({
   // Determine which mode is active
   const activeMode = isDrawingMode ? 'draw' : isAddMode ? 'add' : isSwitchMode ? 'switch' : null;
 
+  // Handle back button - exit mode if in one, otherwise close editor
+  const handleBackPress = () => {
+    if (isDrawingMode) {
+      onToggleDrawing();
+    } else if (isAddMode) {
+      onExitAddMode();
+    } else if (isSwitchMode) {
+      onExitSwitchMode();
+    } else {
+      onClose();
+    }
+  };
+
   return (
     <View style={styles.container}>
-      <TouchableOpacity style={styles.button} onPress={onClose}>
+      <TouchableOpacity style={styles.button} onPress={handleBackPress}>
         <ChevronLeft size={24} color={colors.white} strokeWidth={2} />
       </TouchableOpacity>
 
