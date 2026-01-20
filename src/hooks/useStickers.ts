@@ -17,13 +17,25 @@ export function useStickers(initialFaces: DetectedFace[] = []) {
   const [isAddMode, setIsAddMode] = useState(false);
   const [isSwitchMode, setIsSwitchMode] = useState(false);
   const [pendingSticker, setPendingSticker] = useState<{source: number; type: 'image' | 'blur'} | null>(null);
+  const [largestFaceSize, setLargestFaceSize] = useState<{width: number; height: number}>({width: 100, height: 100});
 
   // Initialize stickers for detected faces (uses hypurr13 by default)
   const initializeBlurStickers = useCallback((faces: DetectedFace[]) => {
+    // Find the largest face by area
+    let largestArea = 0;
+    let largestSize = {width: 100, height: 100};
+
     const faceStickers: StickerData[] = faces.map(face => {
       const width = face.bounds.width;
       const height = face.bounds.height * 1.3;
       const y = face.bounds.y - (height - face.bounds.height) / 2;
+
+      // Track the largest face
+      const area = width * height;
+      if (area > largestArea) {
+        largestArea = area;
+        largestSize = {width, height};
+      }
 
       return {
         id: generateId(),
@@ -38,20 +50,22 @@ export function useStickers(initialFaces: DetectedFace[] = []) {
         isSelected: false,
       };
     });
+
+    setLargestFaceSize(largestSize);
     setStickers(faceStickers);
   }, []);
 
-  // Add a new sticker (image or blur)
+  // Add a new sticker (image or blur) - uses largest face size
   const addSticker = useCallback(
     (imageSource: number, x: number, y: number, stickerType: 'image' | 'blur' = 'image') => {
       const newSticker: StickerData = {
         id: generateId(),
         type: stickerType,
         source: stickerType === 'blur' ? 'blur' : imageSource,
-        x: x - 50, // Center the sticker
-        y: y - 50,
-        width: 100,
-        height: 100,
+        x: x - largestFaceSize.width / 2, // Center the sticker
+        y: y - largestFaceSize.height / 2,
+        width: largestFaceSize.width,
+        height: largestFaceSize.height,
         rotation: 0,
         scale: 1,
         isSelected: true,
@@ -62,7 +76,7 @@ export function useStickers(initialFaces: DetectedFace[] = []) {
       );
       setSelectedStickerId(newSticker.id);
     },
-    [],
+    [largestFaceSize],
   );
 
   // Replace a single sticker with another (image or blur)
