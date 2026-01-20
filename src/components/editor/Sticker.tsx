@@ -81,6 +81,7 @@ const Sticker: React.FC<StickerProps> = ({
   const rotation = useSharedValue(sticker.rotation);
   const savedScale = useSharedValue(sticker.scale);
   const savedRotation = useSharedValue(sticker.rotation);
+  const startAngle = useSharedValue(0);
 
   // Keep shared values synced with sticker prop
   // This is crucial for undo/redo to visually update the sticker
@@ -207,14 +208,42 @@ const Sticker: React.FC<StickerProps> = ({
     });
 
   const handleRotateStart = Gesture.Pan()
-    .onStart(() => {
+    .onStart(event => {
       'worklet';
       runOnJS(captureStartState)();
       savedRotation.value = rotation.value;
+
+      // Calculate center of sticker
+      const centerX = sticker.x + sticker.width / 2;
+      const centerY = sticker.y + sticker.height / 2;
+
+      // The rotate handle is at top-right corner (-14 offset from edge)
+      // event.x/y are relative to the handle itself (28x28 button)
+      const handleCenterX = sticker.x + sticker.width - 14;
+      const handleCenterY = sticker.y - 14;
+      const touchX = handleCenterX + (event.x - 14);
+      const touchY = handleCenterY + (event.y - 14);
+
+      // Calculate starting angle from center to touch point
+      startAngle.value = Math.atan2(touchY - centerY, touchX - centerX) * (180 / Math.PI);
     })
     .onUpdate(event => {
       'worklet';
-      rotation.value = savedRotation.value + event.translationX * 0.5;
+      // Calculate center of sticker
+      const centerX = sticker.x + sticker.width / 2;
+      const centerY = sticker.y + sticker.height / 2;
+
+      // Current touch position
+      const handleCenterX = sticker.x + sticker.width - 14;
+      const handleCenterY = sticker.y - 14;
+      const touchX = handleCenterX + (event.x - 14) + event.translationX;
+      const touchY = handleCenterY + (event.y - 14) + event.translationY;
+
+      // Calculate current angle and delta
+      const currentAngle = Math.atan2(touchY - centerY, touchX - centerX) * (180 / Math.PI);
+      const deltaAngle = currentAngle - startAngle.value;
+
+      rotation.value = savedRotation.value + deltaAngle;
     })
     .onEnd(() => {
       'worklet';
