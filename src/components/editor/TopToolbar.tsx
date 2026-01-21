@@ -17,7 +17,7 @@ interface TopToolbarProps {
   canUndo: boolean;
   onRedo: () => void;
   canRedo: boolean;
-  pendingSticker?: {source: number; type: 'image' | 'blur'} | null;
+  lastChosenSticker?: {source: number; type: 'image' | 'blur'};
   onOpenPicker?: () => void;
 }
 
@@ -35,7 +35,7 @@ const TopToolbar: React.FC<TopToolbarProps> = ({
   canUndo,
   onRedo,
   canRedo,
-  pendingSticker,
+  lastChosenSticker,
   onOpenPicker,
 }) => {
   const isInMode = isAddMode || isDrawingMode || isSwitchMode;
@@ -115,14 +115,14 @@ const TopToolbar: React.FC<TopToolbarProps> = ({
               )}
             </View>
 
-            {/* Sticker preview - shows below Add button when sticker is selected */}
-            {activeMode === 'add' && pendingSticker && onOpenPicker && (
+            {/* Sticker preview - shows below Add/Switch button */}
+            {(activeMode === 'add' || activeMode === 'switch') && lastChosenSticker && onOpenPicker && (
               <TouchableOpacity
                 style={styles.stickerPreview}
                 onPress={onOpenPicker}
                 activeOpacity={0.7}>
                 <Image
-                  source={pendingSticker.source}
+                  source={lastChosenSticker.source}
                   style={styles.stickerPreviewImage}
                   resizeMode="contain"
                 />

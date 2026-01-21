@@ -16,7 +16,10 @@ export function useStickers(initialFaces: DetectedFace[] = []) {
   );
   const [isAddMode, setIsAddMode] = useState(false);
   const [isSwitchMode, setIsSwitchMode] = useState(false);
-  const [pendingSticker, setPendingSticker] = useState<{source: number; type: 'image' | 'blur'} | null>(null);
+  const [lastChosenSticker, setLastChosenSticker] = useState<{source: number; type: 'image' | 'blur'}>({
+    source: DEFAULT_FACE_STICKER.source,
+    type: 'image',
+  });
   const [largestFaceSize, setLargestFaceSize] = useState<{width: number; height: number}>({width: 100, height: 100});
   const [undoneStickers, setUndoneStickers] = useState<StickerData[]>([]);
 
@@ -155,9 +158,8 @@ export function useStickers(initialFaces: DetectedFace[] = []) {
     setIsSwitchMode(false);
   }, []);
 
-  // Exit add mode
+  // Exit add mode (keep lastChosenSticker for next time)
   const exitAddMode = useCallback(() => {
-    setPendingSticker(null);
     setIsAddMode(false);
   }, []);
 
@@ -172,25 +174,24 @@ export function useStickers(initialFaces: DetectedFace[] = []) {
     setIsSwitchMode(false);
   }, []);
 
-  // Add sticker at center of screen and set as pending for more placements
+  // Add sticker at center of screen and set as last chosen for more placements
   // Returns the created sticker for action history tracking
   const addStickerAtCenter = useCallback(
     (imageSource: number, centerX: number, centerY: number, stickerType: 'image' | 'blur' = 'image'): StickerData => {
       const newSticker = addSticker(imageSource, centerX, centerY, stickerType);
-      setPendingSticker({source: imageSource, type: stickerType}); // Set as pending so tapping screen adds more
+      setLastChosenSticker({source: imageSource, type: stickerType}); // Set as last chosen so tapping screen adds more
       return newSticker;
     },
     [addSticker],
   );
 
   // Add sticker at position (used when tapping in add mode)
-  // Returns the created sticker for action history tracking, or null if no pending sticker
+  // Returns the created sticker for action history tracking
   const addStickerAtPosition = useCallback(
-    (x: number, y: number): StickerData | null => {
-      if (!pendingSticker) return null;
-      return addSticker(pendingSticker.source, x, y, pendingSticker.type);
+    (x: number, y: number): StickerData => {
+      return addSticker(lastChosenSticker.source, x, y, lastChosenSticker.type);
     },
-    [pendingSticker, addSticker],
+    [lastChosenSticker, addSticker],
   );
 
   // Undo last added sticker (removes the most recently added image sticker)
@@ -233,7 +234,8 @@ export function useStickers(initialFaces: DetectedFace[] = []) {
     selectedStickerId,
     isAddMode,
     isSwitchMode,
-    pendingSticker,
+    lastChosenSticker,
+    setLastChosenSticker,
     initializeBlurStickers,
     addSticker,
     replaceWithImage,

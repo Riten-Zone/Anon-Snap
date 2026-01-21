@@ -47,7 +47,8 @@ const EditorScreen: React.FC<EditorScreenProps> = ({navigation, route}) => {
     stickers,
     isAddMode,
     isSwitchMode,
-    pendingSticker,
+    lastChosenSticker,
+    setLastChosenSticker,
     initializeBlurStickers,
     replaceWithImage,
     replaceAllWithImage,
@@ -57,7 +58,6 @@ const EditorScreen: React.FC<EditorScreenProps> = ({navigation, route}) => {
     updateStickerRotation,
     deleteSticker,
     selectSticker,
-    selectedStickerId,
     deselectAll,
     enterAddMode,
     exitAddMode,
@@ -353,27 +353,24 @@ const EditorScreen: React.FC<EditorScreenProps> = ({navigation, route}) => {
     setShowHypurrPicker(true);
   }, [enterSwitchMode]);
 
-  // Handle switching one sticker with selected hypurr (selected or first available)
-  const handleSwitchOne = useCallback((imageSource: number, stickerType: 'image' | 'blur') => {
-    // If a sticker is selected, switch that one; otherwise switch the first sticker
-    const stickerToSwitch = selectedStickerId
-      ? stickers.find(s => s.id === selectedStickerId)
-      : stickers[0];
+  // Handle switching one sticker when tapped in Switch mode
+  const handleSwitchOneSticker = useCallback((stickerId: string) => {
+    const stickerToSwitch = stickers.find(s => s.id === stickerId);
     if (stickerToSwitch) {
       // Record before state
       const beforeState = {...stickerToSwitch};
-      replaceWithImage(stickerToSwitch.id, imageSource, stickerType);
+      replaceWithImage(stickerId, lastChosenSticker.source, lastChosenSticker.type);
       // Record action for undo/redo
       recordAction({
         type: 'SWITCH_STICKER',
         payload: {
-          stickerId: stickerToSwitch.id,
+          stickerId: stickerId,
           before: beforeState,
-          after: {...stickerToSwitch, type: stickerType, source: stickerType === 'blur' ? 'blur' : imageSource},
+          after: {...stickerToSwitch, type: lastChosenSticker.type, source: lastChosenSticker.type === 'blur' ? 'blur' : lastChosenSticker.source},
         },
       });
     }
-  }, [stickers, selectedStickerId, replaceWithImage, recordAction]);
+  }, [stickers, lastChosenSticker, replaceWithImage, recordAction]);
 
   // Handle switching all stickers with selected hypurr
   const handleSwitchAll = useCallback((imageSource: number, stickerType: 'image' | 'blur') => {
@@ -436,29 +433,27 @@ const EditorScreen: React.FC<EditorScreenProps> = ({navigation, route}) => {
         // Don't handle taps in drawing mode
         return;
       }
-      if (isAddMode && pendingSticker) {
+      if (isAddMode) {
         // Adjust for image layer offset
         const adjustedX = x - imageOffsetX;
         const adjustedY = y - imageOffsetY;
         const newSticker = addStickerAtPosition(adjustedX, adjustedY);
         // Record action for undo/redo
-        if (newSticker) {
-          recordAction({
-            type: 'ADD_STICKER',
-            payload: {
-              stickerId: newSticker.id,
-              before: null,
-              after: newSticker,
-            },
-          });
-        }
+        recordAction({
+          type: 'ADD_STICKER',
+          payload: {
+            stickerId: newSticker.id,
+            before: null,
+            after: newSticker,
+          },
+        });
       } else {
         // Deselect stickers and close picker, but stay in current mode
         deselectAll();
         setShowStickerPicker(false);
       }
     },
-    [isDrawingMode, isAddMode, pendingSticker, addStickerAtPosition, deselectAll, imageOffsetX, imageOffsetY, recordAction],
+    [isDrawingMode, isAddMode, addStickerAtPosition, deselectAll, imageOffsetX, imageOffsetY, recordAction],
   );
 
   // Drawing gesture handlers
@@ -674,7 +669,13 @@ const EditorScreen: React.FC<EditorScreenProps> = ({navigation, route}) => {
                 sticker={sticker}
                 onUpdate={handleStickerUpdate}
                 onDelete={handleDeleteSticker}
-                onSelect={selectSticker}
+                onSelect={(id) => {
+                  if (isSwitchMode) {
+                    handleSwitchOneSticker(id);
+                  } else {
+                    selectSticker(id);
+                  }
+                }}
               />
             ))}
           </View>
@@ -696,8 +697,8 @@ const EditorScreen: React.FC<EditorScreenProps> = ({navigation, route}) => {
         canUndo={historyCanUndo}
         onRedo={handleRedo}
         canRedo={historyCanRedo}
-        pendingSticker={pendingSticker}
-        onOpenPicker={() => setShowStickerPicker(true)}
+        lastChosenSticker={lastChosenSticker}
+        onOpenPicker={() => isSwitchMode ? setShowHypurrPicker(true) : setShowStickerPicker(true)}
       />
 
       {/* Share button overlay */}
@@ -732,10 +733,13 @@ const EditorScreen: React.FC<EditorScreenProps> = ({navigation, route}) => {
         onClose={() => {
           setShowHypurrPicker(false);
         }}
-        onSwitchOne={handleSwitchOne}
+        onSelectSticker={(source, type) => {
+          setLastChosenSticker({source, type});
+        }}
         onSwitchAll={handleSwitchAll}
         onRandomiseAll={handleRandomiseAll}
         hasStickers={hasStickers}
+        lastChosenSticker={lastChosenSticker}
       />
     </GestureHandlerRootView>
   );
