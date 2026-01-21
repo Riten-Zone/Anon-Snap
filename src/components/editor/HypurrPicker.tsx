@@ -23,9 +23,11 @@ interface HypurrPickerProps {
   visible: boolean;
   onClose: () => void;
   onSelectSticker: (imageSource: number, stickerType: 'image' | 'blur') => void;
+  onSwitchOne: (imageSource: number, stickerType: 'image' | 'blur') => void;
   onSwitchAll: (imageSource: number, stickerType: 'image' | 'blur') => void;
   onRandomiseAll: () => void;
   hasStickers: boolean;
+  hasSelectedSticker: boolean;
   lastChosenSticker: {source: number; type: 'image' | 'blur'};
 }
 
@@ -33,14 +35,21 @@ const HypurrPicker: React.FC<HypurrPickerProps> = ({
   visible,
   onClose,
   onSelectSticker,
+  onSwitchOne,
   onSwitchAll,
   onRandomiseAll,
   hasStickers,
+  hasSelectedSticker,
   lastChosenSticker,
 }) => {
   // Select a sticker and close the picker
   const handleSelectImage = (source: number, type: 'image' | 'blur') => {
     onSelectSticker(source, type);
+    onClose();
+  };
+
+  const handleSwitchOne = () => {
+    onSwitchOne(lastChosenSticker.source, lastChosenSticker.type);
     onClose();
   };
 
@@ -111,6 +120,23 @@ const HypurrPicker: React.FC<HypurrPickerProps> = ({
 
           {/* Action buttons */}
           <View style={styles.buttonContainer}>
+            <TouchableOpacity
+              style={[
+                styles.actionButton,
+                (!hasStickers || !hasSelectedSticker) && styles.buttonDisabled,
+              ]}
+              onPress={handleSwitchOne}
+              disabled={!hasStickers || !hasSelectedSticker}
+              activeOpacity={0.7}>
+              <Text
+                style={[
+                  styles.buttonText,
+                  (!hasStickers || !hasSelectedSticker) && styles.buttonTextDisabled,
+                ]}>
+                Switch One
+              </Text>
+            </TouchableOpacity>
+
             <TouchableOpacity
               style={[
                 styles.actionButton,

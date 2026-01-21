@@ -58,6 +58,7 @@ const EditorScreen: React.FC<EditorScreenProps> = ({navigation, route}) => {
     updateStickerRotation,
     deleteSticker,
     selectSticker,
+    selectedStickerId,
     deselectAll,
     enterAddMode,
     exitAddMode,
@@ -736,9 +737,27 @@ const EditorScreen: React.FC<EditorScreenProps> = ({navigation, route}) => {
         onSelectSticker={(source, type) => {
           setLastChosenSticker({source, type});
         }}
+        onSwitchOne={(source, type) => {
+          if (selectedStickerId) {
+            const stickerToSwitch = stickers.find(s => s.id === selectedStickerId);
+            if (stickerToSwitch) {
+              const beforeState = {...stickerToSwitch};
+              replaceWithImage(selectedStickerId, source, type);
+              recordAction({
+                type: 'SWITCH_STICKER',
+                payload: {
+                  stickerId: selectedStickerId,
+                  before: beforeState,
+                  after: {...stickerToSwitch, type, source: type === 'blur' ? 'blur' : source},
+                },
+              });
+            }
+          }
+        }}
         onSwitchAll={handleSwitchAll}
         onRandomiseAll={handleRandomiseAll}
         hasStickers={hasStickers}
+        hasSelectedSticker={selectedStickerId !== null}
         lastChosenSticker={lastChosenSticker}
       />
     </GestureHandlerRootView>
