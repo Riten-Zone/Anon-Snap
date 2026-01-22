@@ -3,6 +3,7 @@ import {
   View,
   Text,
   StyleSheet,
+  Modal,
   ScrollView,
   TouchableOpacity,
   Image,
@@ -32,68 +33,85 @@ const StickerPicker: React.FC<StickerPickerProps> = ({
   if (!visible) return null;
 
   return (
-    <View style={styles.container}>
-      <View style={styles.header}>
-        <Text style={styles.title}>Add Sticker</Text>
-        <TouchableOpacity onPress={onClose} style={styles.closeButton}>
-          <X size={16} color={colors.white} strokeWidth={2} />
-        </TouchableOpacity>
+    <Modal
+      visible={visible}
+      transparent
+      animationType="slide"
+      onRequestClose={onClose}>
+      <View style={styles.overlay}>
+        <TouchableOpacity
+          style={styles.backdrop}
+          activeOpacity={1}
+          onPress={onClose}
+        />
+        <View style={styles.container}>
+          <View style={styles.header}>
+            <Text style={styles.title}>Add Sticker</Text>
+            <TouchableOpacity onPress={onClose} style={styles.closeButton}>
+              <X size={16} color={colors.white} strokeWidth={2} />
+            </TouchableOpacity>
+          </View>
+          <ScrollView
+            style={styles.scrollView}
+            contentContainerStyle={styles.gridContainer}
+            showsVerticalScrollIndicator={false}>
+            {ALL_STICKERS.map(sticker => (
+              <TouchableOpacity
+                key={sticker.id}
+                style={styles.gridItem}
+                onPress={() => {
+                  onSelectSticker(sticker.source, sticker.type);
+                  onClose();
+                }}
+                activeOpacity={0.7}>
+                <Image
+                  source={sticker.source}
+                  style={styles.stickerImage}
+                  resizeMode="contain"
+                />
+              </TouchableOpacity>
+            ))}
+          </ScrollView>
+        </View>
       </View>
-      <ScrollView
-        style={styles.scrollView}
-        contentContainerStyle={styles.gridContainer}
-        showsVerticalScrollIndicator={false}>
-        {ALL_STICKERS.map(sticker => (
-          <TouchableOpacity
-            key={sticker.id}
-            style={styles.gridItem}
-            onPress={() => {
-              onSelectSticker(sticker.source, sticker.type);
-              onClose();
-            }}
-            activeOpacity={0.7}>
-            <Image
-              source={sticker.source}
-              style={styles.stickerImage}
-              resizeMode="contain"
-            />
-          </TouchableOpacity>
-        ))}
-      </ScrollView>
-    </View>
+    </Modal>
   );
 };
 
 const styles = StyleSheet.create({
+  overlay: {
+    flex: 1,
+    justifyContent: 'flex-end',
+  },
+  backdrop: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(0, 0, 0, 0.7)',
+  },
   container: {
-    position: 'absolute',
-    bottom: 100,
-    left: 0,
-    right: 0,
-    backgroundColor: 'rgba(17, 17, 17, 0.98)',
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
-    paddingBottom: 20,
-    maxHeight: '50%',
+    backgroundColor: colors.gray900,
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    paddingBottom: 40,
+    maxHeight: '70%',
   },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     paddingHorizontal: 20,
-    paddingVertical: 15,
+    paddingVertical: 16,
     borderBottomWidth: 1,
-    borderBottomColor: colors.gray600,
+    borderBottomColor: colors.gray700,
   },
   title: {
-    fontSize: 18,
-    fontWeight: '600',
+    fontSize: 20,
+    fontWeight: '700',
     color: colors.white,
   },
   closeButton: {
-    width: 30,
-    height: 30,
-    borderRadius: 15,
+    width: 32,
+    height: 32,
+    borderRadius: 16,
     backgroundColor: colors.gray700,
     justifyContent: 'center',
     alignItems: 'center',
