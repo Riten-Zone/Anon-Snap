@@ -42,10 +42,10 @@ const HypurrPicker: React.FC<HypurrPickerProps> = ({
   hasSelectedSticker,
   lastChosenSticker,
 }) => {
-  // Select a sticker and close the picker
+  // Select a sticker (just highlight it, don't close the picker)
   const handleSelectImage = (source: number, type: 'image' | 'blur') => {
     onSelectSticker(source, type);
-    onClose();
+    // Don't close - user can then click Switch One/All/Randomise buttons
   };
 
   const handleSwitchOne = () => {
