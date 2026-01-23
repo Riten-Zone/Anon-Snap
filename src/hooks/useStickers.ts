@@ -141,12 +141,21 @@ export function useStickers(initialFaces: DetectedFace[] = []) {
     }
   }, [selectedStickerId]);
 
-  // Select a sticker
+  // Select a sticker (moves it to end of array so it renders on top)
   const selectSticker = useCallback((id: string | null) => {
     setSelectedStickerId(id);
-    setStickers(prev =>
-      prev.map(s => ({...s, isSelected: s.id === id})),
-    );
+    setStickers(prev => {
+      // Find the selected sticker and move it to the end (so it renders on top)
+      const selectedIndex = prev.findIndex(s => s.id === id);
+      if (selectedIndex === -1 || id === null) {
+        // No sticker selected, just update isSelected flags
+        return prev.map(s => ({...s, isSelected: false}));
+      }
+      // Remove from current position and add to end
+      const selected = prev[selectedIndex];
+      const others = prev.filter((_, i) => i !== selectedIndex);
+      return [...others.map(s => ({...s, isSelected: false})), {...selected, isSelected: true}];
+    });
   }, []);
 
   // Deselect all stickers
