@@ -1,10 +1,13 @@
 import {useCallback, useState} from 'react';
 import type {StickerData, DetectedFace} from '../types';
 import {generateId} from '../utils';
-import {ALL_STICKERS, STICKER_COLLECTIONS} from '../data/stickerRegistry';
+import {ALL_STICKERS, BLUR_STICKER} from '../data/stickerRegistry';
 
-// Default sticker for detected faces (hypurr13_no_bg)
-const DEFAULT_FACE_STICKER = STICKER_COLLECTIONS[0].stickers[2];
+// Default sticker for detected faces - hypurr13_no_bg from HypurrCo
+const DEFAULT_FACE_STICKER =
+  ALL_STICKERS.find(s => s.id === 'hypurrco_hypurr13_no_bg') ??
+  ALL_STICKERS.find(s => s.type === 'image') ??
+  BLUR_STICKER;
 
 // Re-export for backward compatibility
 export const HYPURR_FACE_STICKERS = ALL_STICKERS;

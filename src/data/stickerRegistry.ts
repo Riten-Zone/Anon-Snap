@@ -22,6 +22,16 @@ export const BLUR_STICKER: StickerItem = {
 // Sticker collections
 export const STICKER_COLLECTIONS: StickerCollection[] = [
   {
+    name: 'Emoji',
+    stickers: [
+      {
+        id: 'emoji_poop-emoji',
+        source: require('../../assets/stickers/Emoji/poop-emoji.png'),
+        type: 'image',
+      },
+    ],
+  },
+  {
     name: 'HypurrCo',
     stickers: [
       {
