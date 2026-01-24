@@ -5,8 +5,8 @@ import {
   StyleSheet,
   TouchableOpacity,
   StatusBar,
+  Image,
 } from 'react-native';
-import {Fingerprint} from 'lucide-react-native';
 import type {SplashScreenProps} from '../types';
 import {colors} from '../theme';
 
@@ -30,7 +30,10 @@ const SplashScreen: React.FC<SplashScreenProps> = ({navigation}) => {
       onPress={handlePress}>
       <StatusBar barStyle="light-content" backgroundColor={colors.black} />
       <View style={styles.logoContainer}>
-        <Fingerprint size={80} color={colors.white} strokeWidth={1.5} />
+        <Image
+          source={require('../../assets/logo/anon_snap_logo.png')}
+          style={styles.logo}
+        />
         <Text style={styles.title}>Anon Snap</Text>
         <Text style={styles.subtitle}>Take Anonymous Photos</Text>
       </View>
@@ -49,6 +52,11 @@ const styles = StyleSheet.create({
   logoContainer: {
     alignItems: 'center',
     gap: 16,
+  },
+  logo: {
+    width: 120,
+    height: 120,
+    resizeMode: 'contain',
   },
   title: {
     fontSize: 36,
