@@ -59,7 +59,6 @@ export async function compositeImage(
   outputWidth: number,
   outputHeight: number,
   strokes: DrawingStroke[] = [],
-  displayToImageScale: number = 1,
 ): Promise<string> {
   try {
     // Normalize the path
@@ -87,9 +86,6 @@ export async function compositeImage(
 
     // Draw the original image
     canvas.drawImage(image, 0, 0);
-
-    // Scale pixel size to match display density
-    const scaledPixelSize = PIXEL_SIZE * displayToImageScale;
 
     // Draw each sticker
     for (const sticker of stickers) {
@@ -120,9 +116,8 @@ export async function compositeImage(
 
         // Draw pixel grid on top
         const pixelPaint = Skia.Paint();
-        pixelPaint.setAlphaf(0.85); // Match React Native's lighter rendering
-        const cols = Math.floor(sticker.width / scaledPixelSize);
-        const rows = Math.floor(sticker.height / scaledPixelSize);
+        const cols = Math.floor(sticker.width / PIXEL_SIZE);
+        const rows = Math.floor(sticker.height / PIXEL_SIZE);
 
         // Use sticker id as seed for consistent colors
         let seedNum = 0;
@@ -140,7 +135,7 @@ export async function compositeImage(
             const colorIndex = Math.floor((current / m) * PIXEL_COLORS.length);
             pixelPaint.setColor(Skia.Color(PIXEL_COLORS[colorIndex]));
             canvas.drawRect(
-              rect(col * scaledPixelSize, row * scaledPixelSize, scaledPixelSize, scaledPixelSize),
+              rect(col * PIXEL_SIZE, row * PIXEL_SIZE, PIXEL_SIZE, PIXEL_SIZE),
               pixelPaint,
             );
           }
@@ -184,13 +179,13 @@ export async function compositeImage(
 
       const addPixelsForPoint = (px: number, py: number, brushSize: number) => {
         const halfBrush = brushSize / 2;
-        const startX = Math.floor((px - halfBrush) / scaledPixelSize) * scaledPixelSize;
-        const startY = Math.floor((py - halfBrush) / scaledPixelSize) * scaledPixelSize;
+        const startX = Math.floor((px - halfBrush) / PIXEL_SIZE) * PIXEL_SIZE;
+        const startY = Math.floor((py - halfBrush) / PIXEL_SIZE) * PIXEL_SIZE;
         const endX = px + halfBrush;
         const endY = py + halfBrush;
 
-        for (let x = startX; x < endX; x += scaledPixelSize) {
-          for (let y = startY; y < endY; y += scaledPixelSize) {
+        for (let x = startX; x < endX; x += PIXEL_SIZE) {
+          for (let y = startY; y < endY; y += PIXEL_SIZE) {
             const key = `${x},${y}`;
             if (!pixelMap.has(key)) {
               const colorIndex = Math.floor(seededRandom(seedCounter++) * PIXEL_COLORS.length);
@@ -207,14 +202,13 @@ export async function compositeImage(
         }
       }
 
-      // Draw all pixels (with slight transparency to match display appearance)
+      // Draw all pixels (solid, no opacity)
       const paint = Skia.Paint();
-      paint.setAlphaf(0.85); // Match React Native's lighter rendering
 
       for (const [key, color] of pixelMap) {
         const [x, y] = key.split(',').map(Number);
         paint.setColor(Skia.Color(color));
-        canvas.drawRect(rect(x, y, scaledPixelSize, scaledPixelSize), paint);
+        canvas.drawRect(rect(x, y, PIXEL_SIZE, PIXEL_SIZE), paint);
       }
     }
 

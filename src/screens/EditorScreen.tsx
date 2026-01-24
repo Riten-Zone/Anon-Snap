@@ -557,15 +557,12 @@ const EditorScreen: React.FC<EditorScreenProps> = ({navigation, route}) => {
         brushSize: stroke.brushSize * Math.max(scaleX, scaleY),
       }));
 
-      const scale = Math.max(scaleX, scaleY);
-
       const outputPath = await compositeImage(
         photoUri.replace('file://', ''),
         scaledStickers,
         imageSize.width,
         imageSize.height,
         scaledStrokes,
-        scale,
       );
 
       return outputPath;
