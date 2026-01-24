@@ -5,8 +5,9 @@ import {
   StyleSheet,
   TouchableOpacity,
   StatusBar,
+  Image,
 } from 'react-native';
-import {Fingerprint, Image, Camera} from 'lucide-react-native';
+import {Image as ImageIcon, Camera} from 'lucide-react-native';
 import type {HomeScreenProps} from '../types';
 import {pickImageFromGallery} from '../services';
 import {colors} from '../theme';
@@ -28,7 +29,10 @@ const HomeScreen: React.FC<HomeScreenProps> = ({navigation}) => {
       <StatusBar barStyle="light-content" backgroundColor={colors.black} />
 
       <View style={styles.header}>
-        <Fingerprint size={50} color={colors.white} strokeWidth={1.5} />
+        <Image
+          source={require('../../assets/logo/anon_snap_logo.png')}
+          style={styles.logo}
+        />
         <Text style={styles.title}>Anon Snap</Text>
         <Text style={styles.subtitle}>Protect your privacy</Text>
       </View>
@@ -38,7 +42,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({navigation}) => {
           style={[styles.button, styles.importButton]}
           onPress={handleImportPhoto}
           activeOpacity={0.8}>
-          <Image size={40} color={colors.white} strokeWidth={1.5} />
+          <ImageIcon size={40} color={colors.white} strokeWidth={1.5} />
           <Text style={styles.buttonText}>Import Photo</Text>
           <Text style={styles.buttonHint}>Choose from your gallery</Text>
         </TouchableOpacity>
@@ -72,6 +76,11 @@ const styles = StyleSheet.create({
     marginTop: 60,
     marginBottom: 40,
     gap: 12,
+  },
+  logo: {
+    width: 80,
+    height: 80,
+    resizeMode: 'contain',
   },
   title: {
     fontSize: 28,

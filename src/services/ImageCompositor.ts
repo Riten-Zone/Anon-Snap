@@ -120,6 +120,7 @@ export async function compositeImage(
 
         // Draw pixel grid on top
         const pixelPaint = Skia.Paint();
+        pixelPaint.setAlphaf(0.85); // Match React Native's lighter rendering
         const cols = Math.floor(sticker.width / scaledPixelSize);
         const rows = Math.floor(sticker.height / scaledPixelSize);
 
@@ -206,8 +207,9 @@ export async function compositeImage(
         }
       }
 
-      // Draw all pixels (solid, no opacity)
+      // Draw all pixels (with slight transparency to match display appearance)
       const paint = Skia.Paint();
+      paint.setAlphaf(0.85); // Match React Native's lighter rendering
 
       for (const [key, color] of pixelMap) {
         const [x, y] = key.split(',').map(Number);
