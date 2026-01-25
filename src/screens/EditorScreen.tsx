@@ -1,4 +1,4 @@
-import React, {useState, useCallback, useMemo} from 'react';
+import React, {useState, useCallback, useMemo, useRef} from 'react';
 import {
   View,
   Text,
@@ -11,6 +11,7 @@ import {
 } from 'react-native';
 import {GestureHandlerRootView, Gesture, GestureDetector} from 'react-native-gesture-handler';
 import {runOnJS} from 'react-native-reanimated';
+import ViewShot from 'react-native-view-shot';
 import type {EditorScreenProps} from '../types';
 import type {StickerData, DetectedFace} from '../types';
 import {useStickers} from '../hooks';
@@ -20,7 +21,6 @@ import {useActionHistory} from '../hooks/useActionHistory';
 import {detectFacesInImage} from '../services/FaceDetectionService';
 import {saveToGallery} from '../services/GalleryService';
 import {shareImage, shareToTwitter, shareToTelegram} from '../services/ShareService';
-import {compositeImage} from '../services/ImageCompositor';
 import Sticker from '../components/editor/Sticker';
 import StickerPicker from '../components/editor/StickerPicker';
 import TopToolbar from '../components/editor/TopToolbar';
@@ -42,6 +42,7 @@ const EditorScreen: React.FC<EditorScreenProps> = ({navigation, route}) => {
   const [showShareSheet, setShowShareSheet] = useState(false);
   const [showHypurrPicker, setShowHypurrPicker] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
+  const viewShotRef = useRef<ViewShot>(null);
 
   const {
     stickers,
@@ -535,38 +536,11 @@ const EditorScreen: React.FC<EditorScreenProps> = ({navigation, route}) => {
   const handleExport = useCallback(async () => {
     setIsExporting(true);
     try {
-      // Scale stickers back to original image coordinates
-      const scaleX = imageSize.width / displaySize.width;
-      const scaleY = imageSize.height / displaySize.height;
-      // Use uniform scale for sticker dimensions to preserve aspect ratio
-      const uniformScale = (scaleX + scaleY) / 2;
-
-      const scaledStickers = stickers.map(s => ({
-        ...s,
-        x: s.x * scaleX,
-        y: s.y * scaleY,
-        width: s.width * uniformScale,
-        height: s.height * uniformScale,
-      }));
-
-      // Scale drawing strokes to original image coordinates
-      const scaledStrokes = strokes.map(stroke => ({
-        ...stroke,
-        points: stroke.points.map(p => ({
-          x: p.x * scaleX,
-          y: p.y * scaleY,
-        })),
-        brushSize: stroke.brushSize * Math.max(scaleX, scaleY),
-      }));
-
-      const outputPath = await compositeImage(
-        photoUri.replace('file://', ''),
-        scaledStickers,
-        imageSize.width,
-        imageSize.height,
-        scaledStrokes,
-      );
-
+      // Use ViewShot to capture the canvas exactly as displayed
+      if (!viewShotRef.current?.capture) {
+        throw new Error('ViewShot ref not ready');
+      }
+      const outputPath = await viewShotRef.current.capture();
       return outputPath;
     } catch (error) {
       console.error('Export error:', error);
@@ -574,7 +548,7 @@ const EditorScreen: React.FC<EditorScreenProps> = ({navigation, route}) => {
     } finally {
       setIsExporting(false);
     }
-  }, [photoUri, stickers, strokes, imageSize, displaySize]);
+  }, []);
 
   const handleSave = useCallback(async () => {
     try {
@@ -623,46 +597,12 @@ const EditorScreen: React.FC<EditorScreenProps> = ({navigation, route}) => {
 
       <GestureDetector gesture={combinedGesture}>
         <View style={styles.canvasContainer}>
-          {/* Background image */}
-          <Image
-            source={{uri: photoUri}}
+          {/* ViewShot wrapper for screenshot capture */}
+          <ViewShot
+            ref={viewShotRef}
+            options={{format: 'png', quality: 1}}
             style={[
-              styles.backgroundImage,
-              {
-                width: displaySize.width,
-                height: displaySize.height,
-                left: imageOffsetX,
-                top: imageOffsetY,
-              },
-            ]}
-            resizeMode="contain"
-            onLoad={handleImageLoad}
-          />
-
-          {/* Drawing layer */}
-          <View
-            style={[
-              styles.stickersLayer,
-              {
-                width: displaySize.width,
-                height: displaySize.height,
-                left: imageOffsetX,
-                top: imageOffsetY,
-              },
-            ]}
-            pointerEvents="none">
-            <DrawingCanvas
-              strokes={strokes}
-              currentStroke={currentStroke}
-              width={displaySize.width}
-              height={displaySize.height}
-            />
-          </View>
-
-          {/* Stickers layer */}
-          <View
-            style={[
-              styles.stickersLayer,
+              styles.viewShotContainer,
               {
                 width: displaySize.width,
                 height: displaySize.height,
@@ -670,24 +610,66 @@ const EditorScreen: React.FC<EditorScreenProps> = ({navigation, route}) => {
                 top: imageOffsetY,
               },
             ]}>
-            {stickers.map(sticker => (
-              <Sticker
-                key={sticker.id}
-                sticker={sticker}
-                onUpdate={handleStickerUpdate}
-                onDelete={handleDeleteSticker}
-                onSelect={(id) => {
-                  if (isSwitchMode && !showHypurrPicker) {
-                    // Picker closed: switch sticker directly using lastChosenSticker
-                    handleSwitchOneSticker(id);
-                  } else {
-                    // Picker open or not in switch mode: just select
-                    selectSticker(id);
-                  }
-                }}
+            {/* Background image */}
+            <Image
+              source={{uri: photoUri}}
+              style={[
+                styles.backgroundImage,
+                {
+                  width: displaySize.width,
+                  height: displaySize.height,
+                },
+              ]}
+              resizeMode="contain"
+              onLoad={handleImageLoad}
+            />
+
+            {/* Drawing layer */}
+            <View
+              style={[
+                styles.stickersLayer,
+                {
+                  width: displaySize.width,
+                  height: displaySize.height,
+                },
+              ]}
+              pointerEvents="none">
+              <DrawingCanvas
+                strokes={strokes}
+                currentStroke={currentStroke}
+                width={displaySize.width}
+                height={displaySize.height}
               />
-            ))}
-          </View>
+            </View>
+
+            {/* Stickers layer */}
+            <View
+              style={[
+                styles.stickersLayer,
+                {
+                  width: displaySize.width,
+                  height: displaySize.height,
+                },
+              ]}>
+              {stickers.map(sticker => (
+                <Sticker
+                  key={sticker.id}
+                  sticker={sticker}
+                  onUpdate={handleStickerUpdate}
+                  onDelete={handleDeleteSticker}
+                  onSelect={(id) => {
+                    if (isSwitchMode && !showHypurrPicker) {
+                      // Picker closed: switch sticker directly using lastChosenSticker
+                      handleSwitchOneSticker(id);
+                    } else {
+                      // Picker open or not in switch mode: just select
+                      selectSticker(id);
+                    }
+                  }}
+                />
+              ))}
+            </View>
+          </ViewShot>
         </View>
       </GestureDetector>
 
@@ -779,6 +761,9 @@ const styles = StyleSheet.create({
   },
   canvasContainer: {
     flex: 1,
+  },
+  viewShotContainer: {
+    position: 'absolute',
   },
   backgroundImage: {
     position: 'absolute',
