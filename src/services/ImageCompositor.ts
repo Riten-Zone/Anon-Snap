@@ -1,6 +1,6 @@
-import {Skia, BlurMask, rect, rrect} from '@shopify/react-native-skia';
+import {Skia, BlurMask, rect, rrect, ClipOp} from '@shopify/react-native-skia';
 import RNFS from 'react-native-fs';
-import {Image as RNImage} from 'react-native';
+import {Image as RNImage, Platform} from 'react-native';
 import type {StickerData, DrawingStroke} from '../types';
 
 // Pixel colors for drawing (same as DrawingCanvas)
@@ -31,13 +31,64 @@ async function loadStickerImage(source: number): Promise<ReturnType<typeof Skia.
   try {
     const resolved = RNImage.resolveAssetSource(source);
     if (!resolved?.uri) {
+      console.error('Failed to resolve asset source for sticker:', source);
       return null;
     }
 
-    // Fetch the image data
-    const response = await fetch(resolved.uri);
-    const arrayBuffer = await response.arrayBuffer();
-    const data = Skia.Data.fromBytes(new Uint8Array(arrayBuffer));
+    const uri = resolved.uri;
+    let base64Data: string | null = null;
+
+    // Handle different URI schemes for bundled assets
+    if (Platform.OS === 'android' && uri.startsWith('asset:/')) {
+      // Android bundled assets - read directly using RNFS
+      const assetPath = uri.replace('asset:/', '');
+      base64Data = await RNFS.readFileAssets(assetPath, 'base64');
+    } else if (uri.startsWith('file://') || uri.startsWith('/')) {
+      // Local file path (iOS release builds or local files)
+      const filePath = uri.replace('file://', '');
+      base64Data = await RNFS.readFile(filePath, 'base64');
+    } else if (uri.startsWith('http://') || uri.startsWith('https://')) {
+      // Dev server URL - use fetch
+      try {
+        const response = await fetch(uri);
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}`);
+        }
+        const arrayBuffer = await response.arrayBuffer();
+        const bytes = new Uint8Array(arrayBuffer);
+        const data = Skia.Data.fromBytes(bytes);
+        const image = Skia.Image.MakeImageFromEncoded(data);
+
+        if (image) {
+          stickerImageCache.set(source, image);
+        }
+        return image;
+      } catch (fetchError) {
+        console.error('Fetch failed for sticker:', uri, fetchError);
+        return null;
+      }
+    } else {
+      // Unknown URI scheme - try reading as file from MainBundle on iOS
+      if (Platform.OS === 'ios') {
+        const bundlePath = `${RNFS.MainBundlePath}/${uri}`;
+        try {
+          base64Data = await RNFS.readFile(bundlePath, 'base64');
+        } catch {
+          console.error('Failed to read from MainBundle:', bundlePath);
+          return null;
+        }
+      } else {
+        console.error('Unknown URI scheme for sticker:', uri);
+        return null;
+      }
+    }
+
+    if (!base64Data) {
+      return null;
+    }
+
+    // Convert base64 to Skia image
+    const data = Skia.Data.fromBase64(base64Data);
     const image = Skia.Image.MakeImageFromEncoded(data);
 
     if (image) {
@@ -46,7 +97,7 @@ async function loadStickerImage(source: number): Promise<ReturnType<typeof Skia.
 
     return image;
   } catch (error) {
-    console.error('Failed to load sticker image:', error);
+    console.error('Failed to load sticker image:', error, 'source:', source);
     return null;
   }
 }
@@ -107,7 +158,7 @@ export async function compositeImage(
 
         // Create a rounded rect for oval shape
         const roundedRect = rrect(destRect, sticker.width / 2, sticker.height / 2);
-        canvas.clipRRect(roundedRect);
+        canvas.clipRRect(roundedRect, ClipOp.Intersect, true);
 
         // Draw solid gray background first
         const bgPaint = Skia.Paint();
@@ -142,17 +193,27 @@ export async function compositeImage(
         }
       } else if (sticker.type === 'image' && typeof sticker.source === 'number') {
         // Draw image sticker
-        const stickerImage = await loadStickerImage(sticker.source);
-        if (stickerImage) {
-          const destRect = rect(0, 0, sticker.width, sticker.height);
+        try {
+          const stickerImage = await loadStickerImage(sticker.source);
+          if (stickerImage) {
+            // Validate image has valid dimensions before using
+            const imgW = stickerImage.width();
+            const imgH = stickerImage.height();
+            if (imgW > 0 && imgH > 0) {
+              const destRect = rect(0, 0, sticker.width, sticker.height);
 
-          // Create a rounded rect for oval/circular shape (same as blur stickers)
-          const roundedRect = rrect(destRect, sticker.width / 2, sticker.height / 2);
-          canvas.clipRRect(roundedRect);
+              // Create a rounded rect for oval/circular shape (same as blur stickers)
+              const roundedRect = rrect(destRect, sticker.width / 2, sticker.height / 2);
+              canvas.clipRRect(roundedRect, ClipOp.Intersect, true);
 
-          // Draw the image to fill the sticker bounds
-          const srcRect = rect(0, 0, stickerImage.width(), stickerImage.height());
-          canvas.drawImageRect(stickerImage, srcRect, destRect, Skia.Paint());
+              // Draw the image to fill the sticker bounds
+              const srcRect = rect(0, 0, imgW, imgH);
+              canvas.drawImageRect(stickerImage, srcRect, destRect, Skia.Paint());
+            }
+          }
+        } catch (stickerError) {
+          console.error('Error drawing sticker:', sticker.id, stickerError);
+          // Continue with other stickers
         }
       } else if (sticker.type === 'emoji' && typeof sticker.source === 'string') {
         // Draw emoji text
