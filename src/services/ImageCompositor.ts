@@ -1,4 +1,4 @@
-import {Skia, BlurMask, rect, rrect, ClipOp} from '@shopify/react-native-skia';
+import {Skia, BlurMask, rect, rrect, ClipOp, ImageFormat} from '@shopify/react-native-skia';
 import RNFS from 'react-native-fs';
 import {Image as RNImage, Platform} from 'react-native';
 import type {StickerData, DrawingStroke} from '../types';
@@ -148,7 +148,7 @@ export async function compositeImage(
 
       // Apply transformations
       canvas.translate(centerX, centerY);
-      canvas.rotate(sticker.rotation);
+      canvas.rotate(sticker.rotation, 0, 0);
       canvas.scale(sticker.scale, sticker.scale);
       canvas.translate(-sticker.width / 2, -sticker.height / 2);
 
@@ -277,8 +277,8 @@ export async function compositeImage(
     surface.flush();
     const snapshot = surface.makeImageSnapshot();
 
-    // Convert to base64 using Skia's encodeToBase64
-    const base64Output = snapshot.encodeToBase64();
+    // Convert to base64 using Skia's encodeToBase64 with PNG format for high quality
+    const base64Output = snapshot.encodeToBase64(ImageFormat.PNG, 100);
     if (!base64Output) {
       throw new Error('Failed to encode image');
     }

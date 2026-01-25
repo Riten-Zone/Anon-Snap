@@ -538,13 +538,15 @@ const EditorScreen: React.FC<EditorScreenProps> = ({navigation, route}) => {
       // Scale stickers back to original image coordinates
       const scaleX = imageSize.width / displaySize.width;
       const scaleY = imageSize.height / displaySize.height;
+      // Use uniform scale for sticker dimensions to preserve aspect ratio
+      const uniformScale = (scaleX + scaleY) / 2;
 
       const scaledStickers = stickers.map(s => ({
         ...s,
         x: s.x * scaleX,
         y: s.y * scaleY,
-        width: s.width * scaleX,
-        height: s.height * scaleY,
+        width: s.width * uniformScale,
+        height: s.height * uniformScale,
       }));
 
       // Scale drawing strokes to original image coordinates
