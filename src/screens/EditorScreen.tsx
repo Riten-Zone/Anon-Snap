@@ -20,7 +20,7 @@ import {useDrawing} from '../hooks/useDrawing';
 import {useActionHistory} from '../hooks/useActionHistory';
 import {detectFacesInImage} from '../services/FaceDetectionService';
 import {saveToGallery} from '../services/GalleryService';
-import {shareImage, shareToTwitter, shareToTelegram} from '../services/ShareService';
+import {shareImage} from '../services/ShareService';
 import Sticker from '../components/editor/Sticker';
 import StickerPicker from '../components/editor/StickerPicker';
 import TopToolbar from '../components/editor/TopToolbar';
@@ -561,27 +561,7 @@ const EditorScreen: React.FC<EditorScreenProps> = ({navigation, route}) => {
     }
   }, [handleExport]);
 
-  const handleShareTwitter = useCallback(async () => {
-    try {
-      const outputPath = await handleExport();
-      await shareToTwitter(outputPath);
-      setShowShareSheet(false);
-    } catch (error) {
-      Alert.alert('Error', 'Failed to share to Twitter.');
-    }
-  }, [handleExport]);
-
-  const handleShareTelegram = useCallback(async () => {
-    try {
-      const outputPath = await handleExport();
-      await shareToTelegram(outputPath);
-      setShowShareSheet(false);
-    } catch (error) {
-      Alert.alert('Error', 'Failed to share to Telegram.');
-    }
-  }, [handleExport]);
-
-  const handleShareOther = useCallback(async () => {
+  const handleShare = useCallback(async () => {
     try {
       const outputPath = await handleExport();
       await shareImage({url: outputPath});
@@ -590,6 +570,11 @@ const EditorScreen: React.FC<EditorScreenProps> = ({navigation, route}) => {
       Alert.alert('Error', 'Failed to share photo.');
     }
   }, [handleExport]);
+
+  const handleBackToMenu = useCallback(() => {
+    setShowShareSheet(false);
+    navigation.navigate('Home');
+  }, [navigation]);
 
   return (
     <GestureHandlerRootView style={styles.container}>
@@ -713,9 +698,8 @@ const EditorScreen: React.FC<EditorScreenProps> = ({navigation, route}) => {
         visible={showShareSheet}
         onClose={() => setShowShareSheet(false)}
         onSave={handleSave}
-        onShareTwitter={handleShareTwitter}
-        onShareTelegram={handleShareTelegram}
-        onShareOther={handleShareOther}
+        onShare={handleShare}
+        onBackToMenu={handleBackToMenu}
         isLoading={isExporting}
       />
 

@@ -7,16 +7,15 @@ import {
   Modal,
   ActivityIndicator,
 } from 'react-native';
-import {Download, Send, Share2, MessageCircle} from 'lucide-react-native';
+import {Download, Share2, Home} from 'lucide-react-native';
 import {colors} from '../../theme';
 
 interface ShareSheetProps {
   visible: boolean;
   onClose: () => void;
   onSave: () => void;
-  onShareTwitter: () => void;
-  onShareTelegram: () => void;
-  onShareOther: () => void;
+  onShare: () => void;
+  onBackToMenu: () => void;
   isLoading?: boolean;
 }
 
@@ -24,9 +23,8 @@ const ShareSheet: React.FC<ShareSheetProps> = ({
   visible,
   onClose,
   onSave,
-  onShareTwitter,
-  onShareTelegram,
-  onShareOther,
+  onShare,
+  onBackToMenu,
   isLoading,
 }) => {
   return (
@@ -57,34 +55,21 @@ const ShareSheet: React.FC<ShareSheetProps> = ({
                   style={[styles.mainButton, styles.saveButton]}
                   onPress={onSave}>
                   <Download size={24} color={colors.black} strokeWidth={2} />
-                  <Text style={styles.mainButtonText}>Save to Gallery</Text>
+                  <Text style={styles.saveButtonText}>Save Locally</Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  style={[styles.mainButton, styles.shareButton]}
+                  onPress={onShare}>
+                  <Share2 size={24} color={colors.white} strokeWidth={2} />
+                  <Text style={styles.shareButtonText}>Share</Text>
                 </TouchableOpacity>
               </View>
 
-              <Text style={styles.sectionTitle}>Share to</Text>
-
-              <View style={styles.shareOptions}>
-                <TouchableOpacity
-                  style={styles.shareButton}
-                  onPress={onShareTwitter}>
-                  <MessageCircle size={28} color={colors.white} strokeWidth={1.5} />
-                  <Text style={styles.shareLabel}>Twitter</Text>
-                </TouchableOpacity>
-
-                <TouchableOpacity
-                  style={styles.shareButton}
-                  onPress={onShareTelegram}>
-                  <Send size={28} color={colors.white} strokeWidth={1.5} />
-                  <Text style={styles.shareLabel}>Telegram</Text>
-                </TouchableOpacity>
-
-                <TouchableOpacity
-                  style={styles.shareButton}
-                  onPress={onShareOther}>
-                  <Share2 size={28} color={colors.white} strokeWidth={1.5} />
-                  <Text style={styles.shareLabel}>Other</Text>
-                </TouchableOpacity>
-              </View>
+              <TouchableOpacity style={styles.menuButton} onPress={onBackToMenu}>
+                <Home size={20} color={colors.gray400} strokeWidth={2} />
+                <Text style={styles.menuText}>Back to Menu</Text>
+              </TouchableOpacity>
 
               <TouchableOpacity style={styles.cancelButton} onPress={onClose}>
                 <Text style={styles.cancelText}>Cancel</Text>
@@ -139,6 +124,7 @@ const styles = StyleSheet.create({
     color: colors.gray300,
   },
   mainOptions: {
+    gap: 12,
     marginBottom: 24,
   },
   mainButton: {
@@ -152,34 +138,30 @@ const styles = StyleSheet.create({
   saveButton: {
     backgroundColor: colors.white,
   },
-  mainButtonText: {
+  saveButtonText: {
     fontSize: 18,
     fontWeight: '600',
     color: colors.black,
   },
-  sectionTitle: {
-    fontSize: 14,
-    color: colors.gray400,
-    marginBottom: 12,
-    textTransform: 'uppercase',
-    letterSpacing: 1,
-  },
-  shareOptions: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    marginBottom: 24,
-  },
   shareButton: {
-    alignItems: 'center',
-    padding: 16,
-    borderRadius: 16,
     backgroundColor: colors.gray700,
-    minWidth: 90,
-    gap: 8,
   },
-  shareLabel: {
-    fontSize: 14,
+  shareButtonText: {
+    fontSize: 18,
+    fontWeight: '600',
     color: colors.white,
+  },
+  menuButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 16,
+    gap: 8,
+    marginBottom: 8,
+  },
+  menuText: {
+    fontSize: 16,
+    color: colors.gray400,
   },
   cancelButton: {
     padding: 16,
