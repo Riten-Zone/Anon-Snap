@@ -1,5 +1,4 @@
 import Share from 'react-native-share';
-import {Platform} from 'react-native';
 
 export interface ShareOptions {
   title?: string;
@@ -12,7 +11,7 @@ export async function shareImage(options: ShareOptions): Promise<boolean> {
     const result = await Share.open({
       title: options.title || 'Share Photo',
       message: options.message || 'Check out this anonymized photo!',
-      url: Platform.OS === 'android' ? `file://${options.url}` : options.url,
+      url: `file://${options.url}`,
       type: 'image/png',
     });
 
@@ -29,13 +28,16 @@ export async function shareImage(options: ShareOptions): Promise<boolean> {
 
 export async function shareToTwitter(imagePath: string): Promise<boolean> {
   try {
-    await Share.shareSingle({
-      social: Share.Social.TWITTER,
-      url: Platform.OS === 'android' ? `file://${imagePath}` : imagePath,
+    await Share.open({
+      url: `file://${imagePath}`,
+      type: 'image/png',
       message: 'Anonymized with Anon Snap!',
     });
     return true;
-  } catch (error) {
+  } catch (error: any) {
+    if (error?.message?.includes('User did not share')) {
+      return false;
+    }
     console.error('Twitter share error:', error);
     return false;
   }
@@ -45,7 +47,8 @@ export async function shareToTelegram(imagePath: string): Promise<boolean> {
   try {
     await Share.shareSingle({
       social: Share.Social.TELEGRAM,
-      url: Platform.OS === 'android' ? `file://${imagePath}` : imagePath,
+      url: `file://${imagePath}`,
+      type: 'image/png',
       message: 'Anonymized with Anon Snap!',
     });
     return true;

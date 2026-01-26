@@ -33,6 +33,12 @@
 		<key>NSAllowsLocalNetworking</key>
 		<true/>
 	</dict>
+	<key>LSApplicationQueriesSchemes</key>
+	<array>
+		<string>twitter</string>
+		<string>x</string>
+		<string>tg</string>
+	</array>
 	<key>NSCameraUsageDescription</key>
 	<string>Anon Snap needs camera access to take photos for face anonymization.</string>
 	<key>NSPhotoLibraryAddUsageDescription</key>
