@@ -573,7 +573,14 @@ const EditorScreen: React.FC<EditorScreenProps> = ({navigation, route}) => {
 
   const handleBackToMenu = useCallback(() => {
     setShowShareSheet(false);
-    navigation.navigate('Home');
+    Alert.alert(
+      'Discard Changes?',
+      'Are you sure you want to go back? Your edits will be lost.',
+      [
+        {text: 'Cancel', style: 'cancel'},
+        {text: 'Discard', style: 'destructive', onPress: () => navigation.navigate('Home')},
+      ],
+    );
   }, [navigation]);
 
   return (
