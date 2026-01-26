@@ -40,13 +40,16 @@ const ShareSheet: React.FC<ShareSheetProps> = ({
           onPress={onClose}
         />
         <View style={styles.sheet}>
-          <View style={styles.header}>
+          <View style={styles.handleContainer}>
             <View style={styles.handle} />
+          </View>
+          <View style={styles.titleRow}>
+            <View style={styles.placeholder} />
+            <Text style={styles.title}>Share or Save</Text>
             <TouchableOpacity style={styles.closeButton} onPress={onClose}>
               <X size={24} color={colors.gray400} strokeWidth={2} />
             </TouchableOpacity>
           </View>
-          <Text style={styles.title}>Share or Save</Text>
 
           {isLoading ? (
             <View style={styles.loadingContainer}>
@@ -100,11 +103,9 @@ const styles = StyleSheet.create({
     paddingTop: 12,
     paddingBottom: 40,
   },
-  header: {
-    flexDirection: 'row',
+  handleContainer: {
     alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 12,
+    marginBottom: 16,
   },
   handle: {
     width: 40,
@@ -112,17 +113,27 @@ const styles = StyleSheet.create({
     backgroundColor: colors.gray500,
     borderRadius: 2,
   },
-  closeButton: {
-    position: 'absolute',
-    right: 0,
-    padding: 4,
+  titleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 24,
+  },
+  placeholder: {
+    width: 32,
   },
   title: {
     fontSize: 22,
     fontWeight: 'bold',
     color: colors.white,
+    flex: 1,
     textAlign: 'center',
-    marginBottom: 24,
+  },
+  closeButton: {
+    width: 32,
+    height: 32,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   loadingContainer: {
     alignItems: 'center',
