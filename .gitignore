@@ -107,3 +107,6 @@ android/.gradle/
 
 # Claude Code
 .claude/
+
+# Deployment docs (personal reference)
+docs/

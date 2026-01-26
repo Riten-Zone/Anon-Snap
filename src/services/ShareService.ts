@@ -10,7 +10,7 @@ export async function shareImage(options: ShareOptions): Promise<boolean> {
   try {
     const result = await Share.open({
       title: options.title || 'Share Photo',
-      message: options.message || 'Caught a Hypurr in the wild',
+      message: options.message || 'Caught some Hypurr in the wild',
       url: `file://${options.url}`,
       type: 'image/png',
     });
