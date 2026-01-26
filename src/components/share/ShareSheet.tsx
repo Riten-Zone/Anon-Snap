@@ -7,7 +7,7 @@ import {
   Modal,
   ActivityIndicator,
 } from 'react-native';
-import {Download, Share2, Home} from 'lucide-react-native';
+import {Download, Share2, Home, X} from 'lucide-react-native';
 import {colors} from '../../theme';
 
 interface ShareSheetProps {
@@ -40,7 +40,12 @@ const ShareSheet: React.FC<ShareSheetProps> = ({
           onPress={onClose}
         />
         <View style={styles.sheet}>
-          <View style={styles.handle} />
+          <View style={styles.header}>
+            <View style={styles.handle} />
+            <TouchableOpacity style={styles.closeButton} onPress={onClose}>
+              <X size={24} color={colors.gray400} strokeWidth={2} />
+            </TouchableOpacity>
+          </View>
           <Text style={styles.title}>Share or Save</Text>
 
           {isLoading ? (
@@ -70,10 +75,6 @@ const ShareSheet: React.FC<ShareSheetProps> = ({
                 <Home size={20} color={colors.gray400} strokeWidth={2} />
                 <Text style={styles.menuText}>Back to Menu</Text>
               </TouchableOpacity>
-
-              <TouchableOpacity style={styles.cancelButton} onPress={onClose}>
-                <Text style={styles.cancelText}>Cancel</Text>
-              </TouchableOpacity>
             </>
           )}
         </View>
@@ -99,13 +100,22 @@ const styles = StyleSheet.create({
     paddingTop: 12,
     paddingBottom: 40,
   },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 12,
+  },
   handle: {
     width: 40,
     height: 4,
     backgroundColor: colors.gray500,
     borderRadius: 2,
-    alignSelf: 'center',
-    marginBottom: 20,
+  },
+  closeButton: {
+    position: 'absolute',
+    right: 0,
+    padding: 4,
   },
   title: {
     fontSize: 22,
@@ -160,14 +170,6 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   menuText: {
-    fontSize: 16,
-    color: colors.gray400,
-  },
-  cancelButton: {
-    padding: 16,
-    alignItems: 'center',
-  },
-  cancelText: {
     fontSize: 16,
     color: colors.gray400,
   },
