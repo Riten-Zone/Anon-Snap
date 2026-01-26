@@ -30,7 +30,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({navigation}) => {
 
       <View style={styles.header}>
         <Image
-          source={require('../../assets/logo/anon_snap_logo.png')}
+          source={require('../../assets/logo/anon_snap_logo_main.png')}
           style={styles.logo}
         />
         <Text style={styles.title}>Anon Snap</Text>

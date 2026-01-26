@@ -31,7 +31,7 @@ const SplashScreen: React.FC<SplashScreenProps> = ({navigation}) => {
       <StatusBar barStyle="light-content" backgroundColor={colors.black} />
       <View style={styles.logoContainer}>
         <Image
-          source={require('../../assets/logo/anon_snap_logo.png')}
+          source={require('../../assets/logo/anon_snap_logo_main.png')}
           style={styles.logo}
         />
         <Text style={styles.title}>Anon Snap</Text>
