@@ -38,7 +38,6 @@ const DrawingCanvas: React.FC<DrawingCanvasProps> = ({
 }) => {
   const pixels = useMemo(() => {
     const pixelMap = new Map<string, PixelData>();
-    let seedCounter = 0;
 
     const addPixelsForPoint = (px: number, py: number, brushSize: number) => {
       const halfBrush = brushSize / 2;
@@ -51,7 +50,9 @@ const DrawingCanvas: React.FC<DrawingCanvasProps> = ({
         for (let y = startY; y < endY; y += PIXEL_SIZE) {
           const key = `${x},${y}`;
           if (!pixelMap.has(key)) {
-            const colorIndex = Math.floor(seededRandom(seedCounter++) * PIXEL_COLORS.length);
+            // Use position-based seed for stable colors across re-renders
+            const seed = x * 10000 + y;
+            const colorIndex = Math.floor(seededRandom(seed) * PIXEL_COLORS.length);
             pixelMap.set(key, {
               x,
               y,

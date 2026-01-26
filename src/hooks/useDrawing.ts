@@ -32,6 +32,10 @@ export function useDrawing() {
       };
       setStrokes(prev => [...prev, newStroke]);
       setCurrentStroke([]);
+      // Clear undone strokes when creating a new stroke - this keeps the drawing
+      // undo stack in sync with the global action history which also truncates
+      // future actions when a new action is recorded after an undo
+      setUndoneStrokes([]);
       return newStroke;
     }
     return null;

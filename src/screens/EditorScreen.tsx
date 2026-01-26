@@ -624,7 +624,7 @@ const EditorScreen: React.FC<EditorScreenProps> = ({navigation, route}) => {
               onLoad={handleImageLoad}
             />
 
-            {/* Drawing layer */}
+            {/* Stickers layer - rendered first (bottom) */}
             <View
               style={[
                 styles.stickersLayer,
@@ -633,24 +633,7 @@ const EditorScreen: React.FC<EditorScreenProps> = ({navigation, route}) => {
                   height: displaySize.height,
                 },
               ]}
-              pointerEvents="none">
-              <DrawingCanvas
-                strokes={strokes}
-                currentStroke={currentStroke}
-                width={displaySize.width}
-                height={displaySize.height}
-              />
-            </View>
-
-            {/* Stickers layer */}
-            <View
-              style={[
-                styles.stickersLayer,
-                {
-                  width: displaySize.width,
-                  height: displaySize.height,
-                },
-              ]}>
+              pointerEvents={isDrawingMode ? 'none' : 'auto'}>
               {stickers.map(sticker => (
                 <Sticker
                   key={sticker.id}
@@ -668,6 +651,24 @@ const EditorScreen: React.FC<EditorScreenProps> = ({navigation, route}) => {
                   }}
                 />
               ))}
+            </View>
+
+            {/* Drawing layer - rendered second (top) */}
+            <View
+              style={[
+                styles.stickersLayer,
+                {
+                  width: displaySize.width,
+                  height: displaySize.height,
+                },
+              ]}
+              pointerEvents="none">
+              <DrawingCanvas
+                strokes={strokes}
+                currentStroke={currentStroke}
+                width={displaySize.width}
+                height={displaySize.height}
+              />
             </View>
           </ViewShot>
         </View>
