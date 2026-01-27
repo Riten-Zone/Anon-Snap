@@ -552,6 +552,7 @@ const EditorScreen: React.FC<EditorScreenProps> = ({navigation, route}) => {
 
   const handleSave = useCallback(async () => {
     try {
+      deselectAll();
       const outputPath = await handleExport();
       await saveToGallery(outputPath);
       Alert.alert('Saved!', 'Photo saved to your gallery.');
@@ -559,17 +560,18 @@ const EditorScreen: React.FC<EditorScreenProps> = ({navigation, route}) => {
     } catch (error) {
       Alert.alert('Error', 'Failed to save photo.');
     }
-  }, [handleExport]);
+  }, [handleExport, deselectAll]);
 
   const handleShare = useCallback(async () => {
     try {
+      deselectAll();
       const outputPath = await handleExport();
       await shareImage({url: outputPath});
       setShowShareSheet(false);
     } catch (error) {
       Alert.alert('Error', 'Failed to share photo.');
     }
-  }, [handleExport]);
+  }, [handleExport, deselectAll]);
 
   const handleBackToMenu = useCallback(() => {
     setShowShareSheet(false);
