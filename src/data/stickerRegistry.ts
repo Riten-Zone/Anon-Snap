@@ -25,8 +25,8 @@ export const STICKER_COLLECTIONS: StickerCollection[] = [
     name: 'Emoji',
     stickers: [
       {
-        id: 'emoji_poop-emoji',
-        source: require('../../assets/stickers/Emoji/poop-emoji.png'),
+        id: 'emoji_PoopEmoji',
+        source: require('../../assets/stickers/Emoji/PoopEmoji.png'),
         type: 'image',
       },
     ],
@@ -107,6 +107,36 @@ export const STICKER_COLLECTIONS: StickerCollection[] = [
       {
         id: 'hypurrliquid_hypurr6_big_face_no_bg',
         source: require('../../assets/stickers/HypurrLiquid/hypurr6_big_face_no_bg.png'),
+        type: 'image',
+      },
+    ],
+  },
+  {
+    name: 'Meme',
+    stickers: [
+      {
+        id: 'meme_Chad',
+        source: require('../../assets/stickers/Meme/Chad.png'),
+        type: 'image',
+      },
+      {
+        id: 'meme_PepeAngry',
+        source: require('../../assets/stickers/Meme/PepeAngry.png'),
+        type: 'image',
+      },
+      {
+        id: 'meme_PepeSad',
+        source: require('../../assets/stickers/Meme/PepeSad.png'),
+        type: 'image',
+      },
+      {
+        id: 'meme_WojakMonkey',
+        source: require('../../assets/stickers/Meme/WojakMonkey.png'),
+        type: 'image',
+      },
+      {
+        id: 'meme_WojakVoid',
+        source: require('../../assets/stickers/Meme/WojakVoid.png'),
         type: 'image',
       },
     ],
