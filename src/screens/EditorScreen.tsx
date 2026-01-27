@@ -552,7 +552,6 @@ const EditorScreen: React.FC<EditorScreenProps> = ({navigation, route}) => {
 
   const handleSave = useCallback(async () => {
     try {
-      deselectAll();
       const outputPath = await handleExport();
       await saveToGallery(outputPath);
       Alert.alert('Saved!', 'Photo saved to your gallery.');
@@ -560,18 +559,17 @@ const EditorScreen: React.FC<EditorScreenProps> = ({navigation, route}) => {
     } catch (error) {
       Alert.alert('Error', 'Failed to save photo.');
     }
-  }, [handleExport, deselectAll]);
+  }, [handleExport]);
 
   const handleShare = useCallback(async () => {
     try {
-      deselectAll();
       const outputPath = await handleExport();
       await shareImage({url: outputPath});
       setShowShareSheet(false);
     } catch (error) {
       Alert.alert('Error', 'Failed to share photo.');
     }
-  }, [handleExport, deselectAll]);
+  }, [handleExport]);
 
   const handleBackToMenu = useCallback(() => {
     setShowShareSheet(false);
@@ -690,7 +688,10 @@ const EditorScreen: React.FC<EditorScreenProps> = ({navigation, route}) => {
       {/* Share button overlay */}
       <TouchableOpacity
         style={styles.shareButton}
-        onPress={() => setShowShareSheet(true)}
+        onPress={() => {
+          deselectAll();
+          setShowShareSheet(true);
+        }}
         activeOpacity={0.8}>
         <Text style={styles.shareButtonText}>Share</Text>
       </TouchableOpacity>
