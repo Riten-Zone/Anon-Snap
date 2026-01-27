@@ -45,6 +45,8 @@
 	<string>Anon Snap needs permission to save anonymized photos to your library.</string>
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>Anon Snap needs photo library access to import photos for face anonymization.</string>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>Anon Snap does not use your location.</string>
 	<key>RCTNewArchEnabled</key>
 	<true/>
 	<key>UILaunchStoryboardName</key>
