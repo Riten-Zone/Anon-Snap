@@ -1,4 +1,4 @@
-package com.anonsnaptemp
+package com.anonsnap
 
 import android.app.Application
 import com.facebook.react.PackageList

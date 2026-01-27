@@ -15,9 +15,9 @@
             <BuildableReference
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "13B07F861A680F5B00A75B9A"
-               BuildableName = "AnonSnapTemp.app"
-               BlueprintName = "AnonSnapTemp"
-               ReferencedContainer = "container:AnonSnapTemp.xcodeproj">
+               BuildableName = "AnonSnap.app"
+               BlueprintName = "AnonSnap"
+               ReferencedContainer = "container:AnonSnap.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
       </BuildActionEntries>
@@ -33,9 +33,9 @@
             <BuildableReference
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "00E356ED1AD99517003FC87E"
-               BuildableName = "AnonSnapTempTests.xctest"
-               BlueprintName = "AnonSnapTempTests"
-               ReferencedContainer = "container:AnonSnapTemp.xcodeproj">
+               BuildableName = "AnonSnapTests.xctest"
+               BlueprintName = "AnonSnapTests"
+               ReferencedContainer = "container:AnonSnap.xcodeproj">
             </BuildableReference>
          </TestableReference>
       </Testables>
@@ -55,9 +55,9 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "13B07F861A680F5B00A75B9A"
-            BuildableName = "AnonSnapTemp.app"
-            BlueprintName = "AnonSnapTemp"
-            ReferencedContainer = "container:AnonSnapTemp.xcodeproj">
+            BuildableName = "AnonSnap.app"
+            BlueprintName = "AnonSnap"
+            ReferencedContainer = "container:AnonSnap.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
    </LaunchAction>
@@ -72,9 +72,9 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "13B07F861A680F5B00A75B9A"
-            BuildableName = "AnonSnapTemp.app"
-            BlueprintName = "AnonSnapTemp"
-            ReferencedContainer = "container:AnonSnapTemp.xcodeproj">
+            BuildableName = "AnonSnap.app"
+            BlueprintName = "AnonSnap"
+            ReferencedContainer = "container:AnonSnap.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
    </ProfileAction>
