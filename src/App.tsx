@@ -7,7 +7,6 @@ import {StyleSheet, LogBox} from 'react-native';
 LogBox.ignoreLogs(['Sending `onAnimatedValueUpdate` with no listeners registered']);
 
 import {
-  SplashScreen,
   HomeScreen,
   CameraScreen,
   EditorScreen,
@@ -21,13 +20,12 @@ const App: React.FC = () => {
     <GestureHandlerRootView style={styles.container}>
       <NavigationContainer>
         <Stack.Navigator
-          initialRouteName="Splash"
+          initialRouteName="Home"
           screenOptions={{
             headerShown: false,
             animation: 'fade',
             contentStyle: {backgroundColor: '#000000'},
           }}>
-          <Stack.Screen name="Splash" component={SplashScreen} />
           <Stack.Screen name="Home" component={HomeScreen} />
           <Stack.Screen
             name="Camera"

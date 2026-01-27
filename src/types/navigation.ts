@@ -1,7 +1,6 @@
 import type {NativeStackScreenProps} from '@react-navigation/native-stack';
 
 export type RootStackParamList = {
-  Splash: undefined;
   Home: undefined;
   Camera: undefined;
   Editor: {
@@ -9,10 +8,6 @@ export type RootStackParamList = {
   };
 };
 
-export type SplashScreenProps = NativeStackScreenProps<
-  RootStackParamList,
-  'Splash'
->;
 export type HomeScreenProps = NativeStackScreenProps<
   RootStackParamList,
   'Home'

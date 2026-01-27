@@ -37,4 +37,7 @@
             <point key="canvasLocation" x="52.173913043478265" y="375"/>
         </scene>
     </scenes>
+    <resources>
+        <image name="SplashLogo" width="100" height="100"/>
+    </resources>
 </document>
