@@ -352,12 +352,12 @@ const EditorScreen: React.FC<EditorScreenProps> = ({navigation, route}) => {
   const handleSwitchMode = useCallback(() => {
     // Enter switch mode and open the hypurr picker modal
     enterSwitchMode();
-    // Auto-select the first sticker so Switch One button is immediately usable
-    if (stickers.length > 0) {
+    // Auto-select the first sticker only if none is currently selected
+    if (stickers.length > 0 && !selectedStickerId) {
       selectSticker(stickers[0].id);
     }
     setShowHypurrPicker(true);
-  }, [enterSwitchMode, stickers, selectSticker]);
+  }, [enterSwitchMode, stickers, selectSticker, selectedStickerId]);
 
   // Handle switching one sticker when tapped in Switch mode
   const handleSwitchOneSticker = useCallback((stickerId: string) => {
