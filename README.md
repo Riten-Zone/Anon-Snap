@@ -7,10 +7,27 @@ A privacy-preserving face anonymization app for iOS. Take photos, automatically 
 - Camera support (front and back)
 - Import photos from gallery
 - On-device face detection (MLKit - no internet required)
-- Automatic face blurring
+- Automatic face blurring with blur stickers
+- 22 stickers across 5 themed collections
 - Snapchat-like sticker editing (move, rotate, scale, delete)
-- Export to gallery, Twitter, or Telegram
+- Switch stickers - replace individual or all stickers at once
+- Randomize all stickers with one tap
+- Freehand drawing mode
+- Undo/Redo for all editing actions
+- Export to gallery or share via native iOS share sheet
 - Fully offline - privacy first
+
+## Sticker Collections
+
+| Collection | Count | Stickers |
+|------------|-------|----------|
+| Blur | 2 | Circle blur, Oval blur |
+| Emoji | 1 | PoopEmoji |
+| HypurrLiquid | 6 | Hypurr faces (1-6) |
+| HypurrCo | 8 | Hypurr variants (wagmi, zzz, macdonald, and more) |
+| Meme | 5 | Chad, PepeAngry, PepeSad, WojakMonkey, WojakVoid |
+
+**Total: 22 stickers**
 
 ## Prerequisites
 
