@@ -273,7 +273,7 @@
 				ENABLE_USER_SCRIPT_SANDBOXING = NO;
 				INFOPLIST_FILE = AnonSnap/Info.plist;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.video";
-				IPHONEOS_DEPLOYMENT_TARGET = 15.1;
+				IPHONEOS_DEPLOYMENT_TARGET = 12;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -302,7 +302,7 @@
 				ENABLE_USER_SCRIPT_SANDBOXING = NO;
 				INFOPLIST_FILE = AnonSnap/Info.plist;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.video";
-				IPHONEOS_DEPLOYMENT_TARGET = 15.1;
+				IPHONEOS_DEPLOYMENT_TARGET = 12;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
