@@ -113,8 +113,9 @@ const Sticker: React.FC<StickerProps> = ({
     gestureStartState.current = null;
   }, [onUpdate]);
 
-  // Pan gesture for moving
+  // Pan gesture for moving (single finger only, so two fingers can pinch/rotate)
   const panGesture = Gesture.Pan()
+    .maxPointers(1)
     .onStart(() => {
       'worklet';
       runOnJS(captureStartState)();
