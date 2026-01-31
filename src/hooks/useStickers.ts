@@ -136,13 +136,13 @@ export function useStickers(initialFaces: DetectedFace[] = []) {
   // Update sticker scale
   const updateStickerScale = useCallback((id: string, scale: number) => {
     setStickers(prev =>
-      prev.map(s => (s.id === id ? {...s, scale: Math.max(0.2, Math.min(3, scale))} : s)),
+      prev.map(s => (s.id === id ? {...s, scale: Math.max(0.01, Math.min(3, scale))} : s)),
     );
   }, []);
 
   // Save last used scale for new stickers
   const saveLastUsedScale = useCallback((scale: number) => {
-    setLastUsedScale(Math.max(0.2, Math.min(3, scale)));
+    setLastUsedScale(Math.max(0.01, Math.min(3, scale)));
   }, []);
 
   // Update sticker rotation
