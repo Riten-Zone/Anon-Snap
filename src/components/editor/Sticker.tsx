@@ -141,7 +141,7 @@ const Sticker: React.FC<StickerProps> = ({
     })
     .onUpdate(event => {
       'worklet';
-      scale.value = Math.max(0.2, Math.min(3, savedScale.value * event.scale));
+      scale.value = Math.max(0.01, Math.min(3, savedScale.value * event.scale));
     })
     .onEnd(() => {
       'worklet';
@@ -200,7 +200,7 @@ const Sticker: React.FC<StickerProps> = ({
       'worklet';
       // Positive translationY (drag down) = bigger, negative (drag up) = smaller
       const newScale = savedScale.value + event.translationY * 0.005;
-      scale.value = Math.max(0.2, Math.min(3, newScale));
+      scale.value = Math.max(0.01, Math.min(3, newScale));
     })
     .onEnd(() => {
       'worklet';

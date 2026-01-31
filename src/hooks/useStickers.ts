@@ -30,19 +30,23 @@ export function useStickers(initialFaces: DetectedFace[] = []) {
 
   // Initialize stickers for detected faces (uses hypurr13 by default)
   const initializeBlurStickers = useCallback((faces: DetectedFace[]) => {
-    // Find the largest and smallest face by area
+    if (faces.length === 0) {
+      setStickers([]);
+      return;
+    }
+
+    // First pass: find largest and smallest face by area
     let largestArea = 0;
     let largestSize = {width: 100, height: 100};
     let smallestArea = Infinity;
     let smallestSize = {width: 100, height: 100};
 
-    const faceStickers: StickerData[] = faces.map(face => {
+    const faceBounds = faces.map(face => {
       const width = face.bounds.width;
       const height = face.bounds.height * 1.3;
       const y = face.bounds.y - (height - face.bounds.height) / 2;
-
-      // Track the largest and smallest face
       const area = width * height;
+
       if (area > largestArea) {
         largestArea = area;
         largestSize = {width, height};
@@ -52,16 +56,29 @@ export function useStickers(initialFaces: DetectedFace[] = []) {
         smallestSize = {width, height};
       }
 
+      return {x: face.bounds.x, y, width, height};
+    });
+
+    // Second pass: create stickers using largestFaceSize for dimensions
+    // and calculate scale based on each face's actual size
+    const faceStickers: StickerData[] = faceBounds.map(bounds => {
+      // Calculate scale so visual size matches the actual face bounds
+      const faceScale = bounds.width / largestSize.width;
+
+      // Center position: adjust x,y to account for using largestSize dimensions
+      const centerX = bounds.x + bounds.width / 2;
+      const centerY = bounds.y + bounds.height / 2;
+
       return {
         id: generateId(),
         type: 'image',
         source: DEFAULT_FACE_STICKER.source,
-        x: face.bounds.x,
-        y: y,
-        width: width,
-        height: height,
+        x: centerX - largestSize.width / 2,
+        y: centerY - largestSize.height / 2,
+        width: largestSize.width,
+        height: largestSize.height,
         rotation: 0,
-        scale: 1,
+        scale: faceScale,
         isSelected: false,
       };
     });
@@ -89,7 +106,7 @@ export function useStickers(initialFaces: DetectedFace[] = []) {
         width: largestFaceSize.width,
         height: largestFaceSize.height,
         rotation: 0,
-        scale: Math.max(0.2, Math.min(3, scaleToUse)),
+        scale: Math.max(0.01, Math.min(3, scaleToUse)),
         isSelected: true,
       };
 
