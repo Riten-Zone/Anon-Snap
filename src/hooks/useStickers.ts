@@ -24,24 +24,32 @@ export function useStickers(initialFaces: DetectedFace[] = []) {
     type: 'image',
   });
   const [largestFaceSize, setLargestFaceSize] = useState<{width: number; height: number}>({width: 100, height: 100});
+  const [smallestFaceSize, setSmallestFaceSize] = useState<{width: number; height: number}>({width: 100, height: 100});
+  const [lastUsedScale, setLastUsedScale] = useState<number | null>(null);
   const [undoneStickers, setUndoneStickers] = useState<StickerData[]>([]);
 
   // Initialize stickers for detected faces (uses hypurr13 by default)
   const initializeBlurStickers = useCallback((faces: DetectedFace[]) => {
-    // Find the largest face by area
+    // Find the largest and smallest face by area
     let largestArea = 0;
     let largestSize = {width: 100, height: 100};
+    let smallestArea = Infinity;
+    let smallestSize = {width: 100, height: 100};
 
     const faceStickers: StickerData[] = faces.map(face => {
       const width = face.bounds.width;
       const height = face.bounds.height * 1.3;
       const y = face.bounds.y - (height - face.bounds.height) / 2;
 
-      // Track the largest face
+      // Track the largest and smallest face
       const area = width * height;
       if (area > largestArea) {
         largestArea = area;
         largestSize = {width, height};
+      }
+      if (area < smallestArea) {
+        smallestArea = area;
+        smallestSize = {width, height};
       }
 
       return {
@@ -59,13 +67,19 @@ export function useStickers(initialFaces: DetectedFace[] = []) {
     });
 
     setLargestFaceSize(largestSize);
+    setSmallestFaceSize(smallestSize);
     setStickers(faceStickers);
   }, []);
 
   // Add a new sticker (image or blur) - uses largest face size
+  // Scale defaults to match smallest detected face, or user's last used scale
   // Returns the created sticker for action history tracking
   const addSticker = useCallback(
     (imageSource: number, x: number, y: number, stickerType: 'image' | 'blur' = 'image'): StickerData => {
+      // Calculate default scale from smallest/largest face ratio
+      const defaultScale = smallestFaceSize.width / largestFaceSize.width;
+      const scaleToUse = lastUsedScale ?? defaultScale;
+
       const newSticker: StickerData = {
         id: generateId(),
         type: stickerType,
@@ -75,7 +89,7 @@ export function useStickers(initialFaces: DetectedFace[] = []) {
         width: largestFaceSize.width,
         height: largestFaceSize.height,
         rotation: 0,
-        scale: 1,
+        scale: Math.max(0.2, Math.min(3, scaleToUse)),
         isSelected: true,
       };
 
@@ -85,7 +99,7 @@ export function useStickers(initialFaces: DetectedFace[] = []) {
       setSelectedStickerId(newSticker.id);
       return newSticker;
     },
-    [largestFaceSize],
+    [largestFaceSize, smallestFaceSize, lastUsedScale],
   );
 
   // Replace a single sticker with another (image or blur)
@@ -124,6 +138,11 @@ export function useStickers(initialFaces: DetectedFace[] = []) {
     setStickers(prev =>
       prev.map(s => (s.id === id ? {...s, scale: Math.max(0.2, Math.min(3, scale))} : s)),
     );
+  }, []);
+
+  // Save last used scale for new stickers
+  const saveLastUsedScale = useCallback((scale: number) => {
+    setLastUsedScale(Math.max(0.2, Math.min(3, scale)));
   }, []);
 
   // Update sticker rotation
@@ -255,6 +274,7 @@ export function useStickers(initialFaces: DetectedFace[] = []) {
     replaceAllWithSources,
     updateStickerPosition,
     updateStickerScale,
+    saveLastUsedScale,
     updateStickerRotation,
     deleteSticker,
     selectSticker,

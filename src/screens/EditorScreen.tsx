@@ -56,6 +56,7 @@ const EditorScreen: React.FC<EditorScreenProps> = ({navigation, route}) => {
     replaceAllWithSources,
     updateStickerPosition,
     updateStickerScale,
+    saveLastUsedScale,
     updateStickerRotation,
     deleteSticker,
     selectSticker,
@@ -168,6 +169,7 @@ const EditorScreen: React.FC<EditorScreenProps> = ({navigation, route}) => {
       }
       if (updates.scale !== undefined) {
         updateStickerScale(id, updates.scale);
+        saveLastUsedScale(updates.scale);
       }
       if (updates.rotation !== undefined) {
         updateStickerRotation(id, updates.rotation);
@@ -186,7 +188,7 @@ const EditorScreen: React.FC<EditorScreenProps> = ({navigation, route}) => {
         });
       }
     },
-    [stickers, updateStickerPosition, updateStickerScale, updateStickerRotation, recordAction],
+    [stickers, updateStickerPosition, updateStickerScale, saveLastUsedScale, updateStickerRotation, recordAction],
   );
 
   // Handle sticker deletion with history recording
