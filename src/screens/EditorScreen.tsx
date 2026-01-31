@@ -10,7 +10,7 @@ import {
   TouchableOpacity,
 } from 'react-native';
 import {GestureHandlerRootView, Gesture, GestureDetector} from 'react-native-gesture-handler';
-import {runOnJS} from 'react-native-reanimated';
+import {runOnJS, useSharedValue} from 'react-native-reanimated';
 import ViewShot from 'react-native-view-shot';
 import type {EditorScreenProps} from '../types';
 import type {StickerData, DetectedFace} from '../types';
@@ -43,6 +43,13 @@ const EditorScreen: React.FC<EditorScreenProps> = ({navigation, route}) => {
   const [showHypurrPicker, setShowHypurrPicker] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
   const viewShotRef = useRef<ViewShot>(null);
+
+  // Shared values for screen-level pinch/rotate gestures on selected sticker
+  const gestureScale = useSharedValue(1);
+  const gestureRotation = useSharedValue(0);
+  const savedGestureScale = useSharedValue(1);
+  const savedGestureRotation = useSharedValue(0);
+  const gestureStartState = useRef<StickerData | null>(null);
 
   const {
     stickers,
@@ -505,6 +512,110 @@ const EditorScreen: React.FC<EditorScreenProps> = ({navigation, route}) => {
       runOnJS(handleBackgroundTapWithPosition)(event.x, event.y);
     });
 
+  // Screen-level pinch/rotate handlers for selected sticker
+  const handleScreenPinchStart = useCallback(() => {
+    const selectedSticker = stickers.find(s => s.id === selectedStickerId);
+    if (selectedSticker) {
+      gestureStartState.current = {...selectedSticker};
+      gestureScale.value = selectedSticker.scale;
+      savedGestureScale.value = selectedSticker.scale;
+    }
+  }, [stickers, selectedStickerId, gestureScale, savedGestureScale]);
+
+  const handleScreenPinchUpdate = useCallback((newScale: number) => {
+    if (selectedStickerId) {
+      const clampedScale = Math.max(0.01, Math.min(3, newScale));
+      gestureScale.value = clampedScale;
+      updateStickerScale(selectedStickerId, clampedScale);
+    }
+  }, [selectedStickerId, gestureScale, updateStickerScale]);
+
+  const handleScreenPinchEnd = useCallback(() => {
+    if (selectedStickerId && gestureStartState.current) {
+      saveLastUsedScale(gestureScale.value);
+      // Record for undo/redo
+      const currentSticker = stickers.find(s => s.id === selectedStickerId);
+      if (currentSticker) {
+        recordAction({
+          type: 'TRANSFORM_STICKER',
+          payload: {
+            stickerId: selectedStickerId,
+            before: gestureStartState.current,
+            after: {...currentSticker, scale: gestureScale.value},
+          },
+        });
+      }
+      gestureStartState.current = null;
+    }
+  }, [selectedStickerId, stickers, gestureScale, saveLastUsedScale, recordAction]);
+
+  const handleScreenRotateStart = useCallback(() => {
+    const selectedSticker = stickers.find(s => s.id === selectedStickerId);
+    if (selectedSticker) {
+      if (!gestureStartState.current) {
+        gestureStartState.current = {...selectedSticker};
+      }
+      gestureRotation.value = selectedSticker.rotation;
+      savedGestureRotation.value = selectedSticker.rotation;
+    }
+  }, [stickers, selectedStickerId, gestureRotation, savedGestureRotation]);
+
+  const handleScreenRotateUpdate = useCallback((newRotation: number) => {
+    if (selectedStickerId) {
+      gestureRotation.value = newRotation;
+      updateStickerRotation(selectedStickerId, newRotation);
+    }
+  }, [selectedStickerId, gestureRotation, updateStickerRotation]);
+
+  const handleScreenRotateEnd = useCallback(() => {
+    if (selectedStickerId && gestureStartState.current) {
+      const currentSticker = stickers.find(s => s.id === selectedStickerId);
+      if (currentSticker) {
+        recordAction({
+          type: 'TRANSFORM_STICKER',
+          payload: {
+            stickerId: selectedStickerId,
+            before: gestureStartState.current,
+            after: {...currentSticker, rotation: gestureRotation.value},
+          },
+        });
+      }
+      gestureStartState.current = null;
+    }
+  }, [selectedStickerId, stickers, gestureRotation, recordAction]);
+
+  // Screen-level pinch gesture for selected sticker
+  const screenPinchGesture = Gesture.Pinch()
+    .onStart(() => {
+      'worklet';
+      runOnJS(handleScreenPinchStart)();
+    })
+    .onUpdate(event => {
+      'worklet';
+      const newScale = savedGestureScale.value * event.scale;
+      runOnJS(handleScreenPinchUpdate)(newScale);
+    })
+    .onEnd(() => {
+      'worklet';
+      runOnJS(handleScreenPinchEnd)();
+    });
+
+  // Screen-level rotation gesture for selected sticker
+  const screenRotationGesture = Gesture.Rotation()
+    .onStart(() => {
+      'worklet';
+      runOnJS(handleScreenRotateStart)();
+    })
+    .onUpdate(event => {
+      'worklet';
+      const newRotation = savedGestureRotation.value + (event.rotation * 180) / Math.PI;
+      runOnJS(handleScreenRotateUpdate)(newRotation);
+    })
+    .onEnd(() => {
+      'worklet';
+      runOnJS(handleScreenRotateEnd)();
+    });
+
   // Drawing pan gesture
   const drawingPanGesture = Gesture.Pan()
     .enabled(isDrawingMode)
@@ -521,8 +632,14 @@ const EditorScreen: React.FC<EditorScreenProps> = ({navigation, route}) => {
       runOnJS(handleDrawEnd)();
     });
 
-  // Combine gestures - drawing takes priority when in drawing mode
-  const combinedGesture = Gesture.Race(drawingPanGesture, backgroundTapGesture);
+  // Combine pinch and rotation gestures (can happen simultaneously)
+  const screenTransformGestures = Gesture.Simultaneous(screenPinchGesture, screenRotationGesture);
+
+  // Combine gestures - drawing takes priority, then screen transforms, then tap
+  const combinedGesture = Gesture.Simultaneous(
+    Gesture.Race(drawingPanGesture, backgroundTapGesture),
+    screenTransformGestures,
+  );
 
   const handleClose = useCallback(() => {
     Alert.alert(
