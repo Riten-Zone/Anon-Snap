@@ -1,6 +1,6 @@
 import React from 'react';
 import {View, Text, StyleSheet, TouchableOpacity, Image} from 'react-native';
-import {ChevronLeft, Undo2, Redo2, Shuffle, Plus, Pencil} from 'lucide-react-native';
+import {ChevronLeft, Undo2, Redo2, Shuffle, Plus, Pencil, EyeOff} from 'lucide-react-native';
 import {colors} from '../../theme';
 
 interface TopToolbarProps {
@@ -19,6 +19,7 @@ interface TopToolbarProps {
   canRedo: boolean;
   lastChosenSticker?: {source: number; type: 'image' | 'blur'};
   onOpenPicker?: () => void;
+  onHideUI: () => void;
 }
 
 const TopToolbar: React.FC<TopToolbarProps> = ({
@@ -37,6 +38,7 @@ const TopToolbar: React.FC<TopToolbarProps> = ({
   canRedo,
   lastChosenSticker,
   onOpenPicker,
+  onHideUI,
 }) => {
   const isInMode = isAddMode || isDrawingMode || isSwitchMode;
 
@@ -174,6 +176,14 @@ const TopToolbar: React.FC<TopToolbarProps> = ({
               activeOpacity={0.7}>
               <Pencil size={24} color={colors.white} strokeWidth={1.5} />
               <Text style={styles.toolLabel}>Draw</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={styles.toolButton}
+              onPress={onHideUI}
+              activeOpacity={0.7}>
+              <EyeOff size={24} color={colors.white} strokeWidth={1.5} />
+              <Text style={styles.toolLabel}>Hide</Text>
             </TouchableOpacity>
           </>
         )}

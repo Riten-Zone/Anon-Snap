@@ -44,6 +44,7 @@ const EditorScreen: React.FC<EditorScreenProps> = ({navigation, route}) => {
   const [showShareSheet, setShowShareSheet] = useState(false);
   const [showHypurrPicker, setShowHypurrPicker] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
+  const [isUIHidden, setIsUIHidden] = useState(false);
   const viewShotRef = useRef<ViewShot>(null);
 
   // Shared values for screen-level pinch/rotate gestures on selected sticker
@@ -444,8 +445,18 @@ const EditorScreen: React.FC<EditorScreenProps> = ({navigation, route}) => {
   // Check if there are any stickers
   const hasStickers = useMemo(() => stickers.length > 0, [stickers]);
 
+  // Handler to hide UI
+  const handleHideUI = useCallback(() => {
+    setIsUIHidden(true);
+  }, []);
+
   const handleBackgroundTapWithPosition = useCallback(
     (x: number, y: number) => {
+      // If UI is hidden, show it on tap
+      if (isUIHidden) {
+        setIsUIHidden(false);
+        return;
+      }
       if (isDrawingMode) {
         // Don't handle taps in drawing mode
         return;
@@ -470,7 +481,7 @@ const EditorScreen: React.FC<EditorScreenProps> = ({navigation, route}) => {
         setShowStickerPicker(false);
       }
     },
-    [isDrawingMode, isAddMode, addStickerAtPosition, deselectAll, imageOffsetX, imageOffsetY, recordAction],
+    [isUIHidden, isDrawingMode, isAddMode, addStickerAtPosition, deselectAll, imageOffsetX, imageOffsetY, recordAction],
   );
 
   // Drawing gesture handlers
@@ -789,34 +800,39 @@ const EditorScreen: React.FC<EditorScreenProps> = ({navigation, route}) => {
       </GestureDetector>
 
       {/* Top Toolbar */}
-      <TopToolbar
-        onAddSticker={handleOpenAddMode}
-        onSwitchSticker={handleSwitchMode}
-        onClose={handleClose}
-        isAddMode={isAddMode}
-        isSwitchMode={isSwitchMode}
-        onExitAddMode={exitAddMode}
-        onExitSwitchMode={exitSwitchMode}
-        isDrawingMode={isDrawingMode}
-        onToggleDrawing={toggleDrawingMode}
-        onUndo={handleUndo}
-        canUndo={historyCanUndo}
-        onRedo={handleRedo}
-        canRedo={historyCanRedo}
-        lastChosenSticker={lastChosenSticker}
-        onOpenPicker={() => isSwitchMode ? setShowHypurrPicker(true) : setShowStickerPicker(true)}
-      />
+      {!isUIHidden && (
+        <TopToolbar
+          onAddSticker={handleOpenAddMode}
+          onSwitchSticker={handleSwitchMode}
+          onClose={handleClose}
+          isAddMode={isAddMode}
+          isSwitchMode={isSwitchMode}
+          onExitAddMode={exitAddMode}
+          onExitSwitchMode={exitSwitchMode}
+          isDrawingMode={isDrawingMode}
+          onToggleDrawing={toggleDrawingMode}
+          onUndo={handleUndo}
+          canUndo={historyCanUndo}
+          onRedo={handleRedo}
+          canRedo={historyCanRedo}
+          lastChosenSticker={lastChosenSticker}
+          onOpenPicker={() => isSwitchMode ? setShowHypurrPicker(true) : setShowStickerPicker(true)}
+          onHideUI={handleHideUI}
+        />
+      )}
 
       {/* Share button overlay */}
-      <TouchableOpacity
-        style={styles.shareButton}
-        onPress={() => {
-          deselectAll();
-          setShowShareSheet(true);
-        }}
-        activeOpacity={0.8}>
-        <Text style={styles.shareButtonText}>Share</Text>
-      </TouchableOpacity>
+      {!isUIHidden && (
+        <TouchableOpacity
+          style={styles.shareButton}
+          onPress={() => {
+            deselectAll();
+            setShowShareSheet(true);
+          }}
+          activeOpacity={0.8}>
+          <Text style={styles.shareButtonText}>Share</Text>
+        </TouchableOpacity>
+      )}
 
       {/* Sticker Picker */}
       <StickerPicker
