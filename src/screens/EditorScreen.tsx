@@ -27,6 +27,8 @@ import TopToolbar from '../components/editor/TopToolbar';
 import ShareSheet from '../components/share/ShareSheet';
 import DrawingCanvas from '../components/editor/DrawingCanvas';
 import HypurrPicker from '../components/editor/HypurrPicker';
+import Magnifier from '../components/editor/Magnifier';
+import {MagnifierProvider} from '../context/MagnifierContext';
 
 const {width: SCREEN_WIDTH, height: SCREEN_HEIGHT} = Dimensions.get('window');
 
@@ -703,6 +705,7 @@ const EditorScreen: React.FC<EditorScreenProps> = ({navigation, route}) => {
   }, [navigation]);
 
   return (
+    <MagnifierProvider>
     <GestureHandlerRootView style={styles.container}>
       <StatusBar barStyle="light-content" backgroundColor="#000000" />
 
@@ -864,7 +867,16 @@ const EditorScreen: React.FC<EditorScreenProps> = ({navigation, route}) => {
         hasSelectedSticker={selectedStickerId !== null}
         lastChosenSticker={lastChosenSticker}
       />
+
+      {/* Magnifier overlay - outside ViewShot so it won't be captured */}
+      <Magnifier
+        photoUri={photoUri}
+        displaySize={displaySize}
+        imageOffset={{x: imageOffsetX, y: imageOffsetY}}
+        stickers={stickers}
+      />
     </GestureHandlerRootView>
+    </MagnifierProvider>
   );
 };
 

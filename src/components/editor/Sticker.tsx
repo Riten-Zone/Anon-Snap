@@ -13,6 +13,7 @@ import {X, RotateCw} from 'lucide-react-native';
 import {Text} from 'react-native';
 import type {StickerData} from '../../types';
 import {colors} from '../../theme';
+import {useMagnifier} from '../../context/MagnifierContext';
 
 const PIXEL_COLORS = [
   '#ffffff', '#f0f0f0', '#e0e0e0', '#d0d0d0',
@@ -75,6 +76,7 @@ const Sticker: React.FC<StickerProps> = ({
   onDelete,
   onSelect,
 }) => {
+  const {isDragging, dragPositionX, dragPositionY, dragStickerId} = useMagnifier();
   const translateX = useSharedValue(sticker.x);
   const translateY = useSharedValue(sticker.y);
   const scale = useSharedValue(sticker.scale);
@@ -118,6 +120,13 @@ const Sticker: React.FC<StickerProps> = ({
     .maxPointers(1)
     .onStart(() => {
       'worklet';
+      // Start magnifier
+      isDragging.value = true;
+      dragStickerId.value = sticker.id;
+      // Set initial position (center of sticker)
+      dragPositionX.value = sticker.x + sticker.width / 2;
+      dragPositionY.value = sticker.y + sticker.height / 2;
+
       runOnJS(captureStartState)();
       runOnJS(onSelect)(sticker.id);
     })
@@ -125,9 +134,17 @@ const Sticker: React.FC<StickerProps> = ({
       'worklet';
       translateX.value = sticker.x + event.translationX;
       translateY.value = sticker.y + event.translationY;
+
+      // Update magnifier position (center of sticker at new position)
+      dragPositionX.value = sticker.x + event.translationX + sticker.width / 2;
+      dragPositionY.value = sticker.y + event.translationY + sticker.height / 2;
     })
     .onEnd(event => {
       'worklet';
+      // Stop magnifier
+      isDragging.value = false;
+      dragStickerId.value = null;
+
       const newX = sticker.x + event.translationX;
       const newY = sticker.y + event.translationY;
       runOnJS(updateWithHistory)(sticker.id, {x: newX, y: newY});
