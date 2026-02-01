@@ -10,6 +10,7 @@ A privacy-preserving face anonymization app for iOS. Take photos, automatically 
 - Automatic face blurring with blur stickers
 - 22 stickers across 5 themed collections
 - Snapchat-like sticker editing (move, rotate, scale, delete)
+- Magnifier loupe when dragging stickers (see what's under your finger)
 - Switch stickers - replace individual or all stickers at once
 - Randomize all stickers with one tap
 - Freehand drawing mode
@@ -28,6 +29,8 @@ A privacy-preserving face anonymization app for iOS. Take photos, automatically 
 | Meme | 5 | Chad, PepeAngry, PepeSad, WojakMonkey, WojakVoid |
 
 **Total: 22 stickers**
+
+*More collections coming soon!*
 
 ## Prerequisites
 
