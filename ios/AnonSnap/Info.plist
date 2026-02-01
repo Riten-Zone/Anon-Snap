@@ -41,12 +41,12 @@
 	</dict>
 	<key>NSCameraUsageDescription</key>
 	<string>Anon Snap needs camera access to take photos for face anonymization.</string>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>Anon Snap does not use your location.</string>
 	<key>NSPhotoLibraryAddUsageDescription</key>
 	<string>Anon Snap needs permission to save anonymized photos to your library.</string>
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>Anon Snap needs photo library access to import photos for face anonymization.</string>
-	<key>NSLocationWhenInUseUsageDescription</key>
-	<string>Anon Snap does not use your location.</string>
 	<key>RCTNewArchEnabled</key>
 	<true/>
 	<key>UILaunchStoryboardName</key>
@@ -59,6 +59,12 @@
 	<array>
 		<string>UIInterfaceOrientationPortrait</string>
 	</array>
+	<key>UISupportedInterfaceOrientations~ipad</key>
+	<array>
+		<string>UIInterfaceOrientationPortrait</string>
+	</array>
+	<key>UIRequiresFullScreen</key>
+	<true/>
 	<key>UIViewControllerBasedStatusBarAppearance</key>
 	<false/>
 </dict>
