@@ -4,6 +4,7 @@ import Animated, {
   useAnimatedStyle,
   withSpring,
   useDerivedValue,
+  type SharedValue,
 } from 'react-native-reanimated';
 import {useMagnifier} from '../../context/MagnifierContext';
 import {colors} from '../../theme';
@@ -71,6 +72,70 @@ const MiniPixelGrid: React.FC<MiniPixelGridProps> = ({width, height, seed}) => {
   );
 };
 
+// Animated sticker preview component for magnifier
+interface AnimatedStickerPreviewProps {
+  sticker: StickerData;
+  dragStickerId: SharedValue<string | null>;
+  dragPositionX: SharedValue<number>;
+  dragPositionY: SharedValue<number>;
+}
+
+const AnimatedStickerPreview: React.FC<AnimatedStickerPreviewProps> = ({
+  sticker,
+  dragStickerId,
+  dragPositionX,
+  dragPositionY,
+}) => {
+  const animatedStyle = useAnimatedStyle(() => {
+    const isDraggingThis = dragStickerId.value === sticker.id;
+
+    // For the dragging sticker, use live position from context
+    // dragPosition is center of sticker, so subtract half width/height
+    const x = isDraggingThis
+      ? dragPositionX.value - sticker.width / 2
+      : sticker.x;
+    const y = isDraggingThis
+      ? dragPositionY.value - sticker.height / 2
+      : sticker.y;
+
+    return {
+      transform: [
+        {translateX: x},
+        {translateY: y},
+        {scale: sticker.scale},
+        {rotate: `${sticker.rotation}deg`},
+      ],
+    };
+  });
+
+  return (
+    <Animated.View style={[styles.stickerContainer, animatedStyle]}>
+      <View style={[styles.stickerBox, {
+        width: sticker.width,
+        height: sticker.height,
+      }]}>
+        {sticker.type === 'blur' ? (
+          <View style={styles.blurPreview}>
+            <MiniPixelGrid
+              width={sticker.width}
+              height={sticker.height}
+              seed={sticker.id}
+            />
+          </View>
+        ) : sticker.type === 'image' ? (
+          <Image
+            source={sticker.source as number}
+            style={styles.stickerImage}
+            resizeMode="contain"
+          />
+        ) : (
+          <Text style={styles.emoji}>{sticker.source as string}</Text>
+        )}
+      </View>
+    </Animated.View>
+  );
+};
+
 interface MagnifierProps {
   photoUri: string;
   displaySize: {width: number; height: number};
@@ -84,7 +149,7 @@ const Magnifier: React.FC<MagnifierProps> = ({
   imageOffset,
   stickers,
 }) => {
-  const {isDragging, dragPositionX, dragPositionY} = useMagnifier();
+  const {isDragging, dragPositionX, dragPositionY, dragStickerId} = useMagnifier();
 
   // Calculate smart position that flips based on edges
   const positionX = useDerivedValue(() => {
@@ -167,44 +232,15 @@ const Magnifier: React.FC<MagnifierProps> = ({
             width: displaySize.width,
             height: displaySize.height,
           }]}>
-            {stickers.map(sticker => {
-              const stickerStyle = {
-                position: 'absolute' as const,
-                transform: [
-                  {translateX: sticker.x},
-                  {translateY: sticker.y},
-                  {scale: sticker.scale},
-                  {rotate: `${sticker.rotation}deg`},
-                ],
-              };
-
-              return (
-                <View key={sticker.id} style={stickerStyle}>
-                  <View style={[styles.stickerBox, {
-                    width: sticker.width,
-                    height: sticker.height,
-                  }]}>
-                    {sticker.type === 'blur' ? (
-                      <View style={styles.blurPreview}>
-                        <MiniPixelGrid
-                          width={sticker.width}
-                          height={sticker.height}
-                          seed={sticker.id}
-                        />
-                      </View>
-                    ) : sticker.type === 'image' ? (
-                      <Image
-                        source={sticker.source as number}
-                        style={styles.stickerImage}
-                        resizeMode="contain"
-                      />
-                    ) : (
-                      <Text style={styles.emoji}>{sticker.source as string}</Text>
-                    )}
-                  </View>
-                </View>
-              );
-            })}
+            {stickers.map(sticker => (
+              <AnimatedStickerPreview
+                key={sticker.id}
+                sticker={sticker}
+                dragStickerId={dragStickerId}
+                dragPositionX={dragPositionX}
+                dragPositionY={dragPositionY}
+              />
+            ))}
           </View>
         </Animated.View>
       </View>
@@ -240,6 +276,9 @@ const styles = StyleSheet.create({
     transformOrigin: 'top left',
   },
   stickersLayer: {
+    position: 'absolute',
+  },
+  stickerContainer: {
     position: 'absolute',
   },
   stickerBox: {
