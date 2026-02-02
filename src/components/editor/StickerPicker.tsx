@@ -4,20 +4,11 @@ import {
   Text,
   StyleSheet,
   Modal,
-  ScrollView,
   TouchableOpacity,
-  Image,
-  Dimensions,
 } from 'react-native';
 import {X} from 'lucide-react-native';
-import {ALL_STICKERS} from '../../data/stickerRegistry';
 import {colors} from '../../theme';
-
-const {width: SCREEN_WIDTH} = Dimensions.get('window');
-const GRID_PADDING = 16;
-const GRID_GAP = 12;
-const NUM_COLUMNS = 4;
-const ITEM_SIZE = (SCREEN_WIDTH - GRID_PADDING * 2 - GRID_GAP * (NUM_COLUMNS - 1)) / NUM_COLUMNS;
+import StickerGrid from './StickerGrid';
 
 interface StickerPickerProps {
   visible: boolean;
@@ -51,27 +42,12 @@ const StickerPicker: React.FC<StickerPickerProps> = ({
               <X size={16} color={colors.white} strokeWidth={2} />
             </TouchableOpacity>
           </View>
-          <ScrollView
-            style={styles.scrollView}
-            contentContainerStyle={styles.gridContainer}
-            showsVerticalScrollIndicator={false}>
-            {ALL_STICKERS.map(sticker => (
-              <TouchableOpacity
-                key={sticker.id}
-                style={styles.gridItem}
-                onPress={() => {
-                  onSelectSticker(sticker.source, sticker.type);
-                  onClose();
-                }}
-                activeOpacity={0.7}>
-                <Image
-                  source={sticker.source}
-                  style={styles.stickerImage}
-                  resizeMode="contain"
-                />
-              </TouchableOpacity>
-            ))}
-          </ScrollView>
+          <StickerGrid
+            onSelectSticker={(source, type) => {
+              onSelectSticker(source, type);
+              onClose();
+            }}
+          />
         </View>
       </View>
     </Modal>
@@ -115,28 +91,6 @@ const styles = StyleSheet.create({
     backgroundColor: colors.gray700,
     justifyContent: 'center',
     alignItems: 'center',
-  },
-  scrollView: {
-    maxHeight: 300,
-  },
-  gridContainer: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    paddingHorizontal: GRID_PADDING,
-    paddingVertical: 12,
-    gap: GRID_GAP,
-  },
-  gridItem: {
-    width: ITEM_SIZE,
-    height: ITEM_SIZE,
-    borderRadius: 12,
-    backgroundColor: colors.gray800,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  stickerImage: {
-    width: ITEM_SIZE - 12,
-    height: ITEM_SIZE - 12,
   },
 });
 

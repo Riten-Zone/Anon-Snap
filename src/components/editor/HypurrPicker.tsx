@@ -5,19 +5,10 @@ import {
   StyleSheet,
   Modal,
   TouchableOpacity,
-  Image,
-  ScrollView,
-  Dimensions,
 } from 'react-native';
 import {X} from 'lucide-react-native';
-import {ALL_STICKERS} from '../../data/stickerRegistry';
 import {colors} from '../../theme';
-
-const {width: SCREEN_WIDTH} = Dimensions.get('window');
-const GRID_PADDING = 16;
-const GRID_GAP = 12;
-const NUM_COLUMNS = 4;
-const ITEM_SIZE = (SCREEN_WIDTH - GRID_PADDING * 2 - GRID_GAP * (NUM_COLUMNS - 1)) / NUM_COLUMNS;
+import StickerGrid from './StickerGrid';
 
 interface HypurrPickerProps {
   visible: boolean;
@@ -95,28 +86,12 @@ const HypurrPicker: React.FC<HypurrPickerProps> = ({
               : 'No stickers to replace'}
           </Text>
 
-          {/* Grid of hypurr images */}
-          <ScrollView
-            style={styles.scrollView}
-            contentContainerStyle={styles.gridContainer}
-            showsVerticalScrollIndicator={false}>
-            {ALL_STICKERS.map(sticker => (
-              <TouchableOpacity
-                key={sticker.id}
-                style={[
-                  styles.gridItem,
-                  lastChosenSticker.source === sticker.source && styles.gridItemSelected,
-                ]}
-                onPress={() => handleSelectImage(sticker.source, sticker.type)}
-                activeOpacity={0.7}>
-                <Image
-                  source={sticker.source}
-                  style={styles.hypurrImage}
-                  resizeMode="contain"
-                />
-              </TouchableOpacity>
-            ))}
-          </ScrollView>
+          {/* Grid of stickers by collection */}
+          <StickerGrid
+            onSelectSticker={handleSelectImage}
+            selectedSource={lastChosenSticker.source}
+            showSelectionHighlight={true}
+          />
 
           {/* Action buttons */}
           <View style={styles.buttonContainer}>
@@ -223,34 +198,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingTop: 12,
     paddingBottom: 8,
-  },
-  scrollView: {
-    maxHeight: 300,
-  },
-  gridContainer: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    paddingHorizontal: GRID_PADDING,
-    paddingVertical: 8,
-    gap: GRID_GAP,
-  },
-  gridItem: {
-    width: ITEM_SIZE,
-    height: ITEM_SIZE,
-    borderRadius: 12,
-    backgroundColor: colors.gray800,
-    justifyContent: 'center',
-    alignItems: 'center',
-    borderWidth: 2,
-    borderColor: 'transparent',
-  },
-  gridItemSelected: {
-    borderColor: colors.white,
-    backgroundColor: colors.gray700,
-  },
-  hypurrImage: {
-    width: ITEM_SIZE - 12,
-    height: ITEM_SIZE - 12,
   },
   buttonContainer: {
     flexDirection: 'row',
