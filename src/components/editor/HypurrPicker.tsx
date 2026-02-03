@@ -90,6 +90,8 @@ const HypurrPicker: React.FC<HypurrPickerProps> = ({
     onClose();
   };
 
+  if (!visible) return null;
+
   return (
     <View style={styles.wrapper} pointerEvents={visible ? 'auto' : 'none'}>
       <Animated.View style={[styles.backdrop, {opacity: fadeAnim}]}>

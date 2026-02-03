@@ -62,6 +62,8 @@ const StickerPicker: React.FC<StickerPickerProps> = ({
     onClose();
   }, [onSelectSticker, onClose]);
 
+  if (!visible) return null;
+
   return (
     <View style={[styles.wrapper, !visible && styles.hidden]} pointerEvents={visible ? 'auto' : 'none'}>
       <Animated.View style={[styles.backdrop, {opacity: fadeAnim}]}>
