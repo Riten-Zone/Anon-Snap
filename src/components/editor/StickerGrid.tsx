@@ -148,7 +148,7 @@ const StickerGrid: React.FC<StickerGridProps> = ({
         contentContainerStyle={styles.gridContainer}
         showsVerticalScrollIndicator={false}
         onScroll={handleScroll}
-        scrollEventThrottle={16}>
+        scrollEventThrottle={200}>
         {ALL_SECTIONS.map(renderSection)}
       </ScrollView>
     </View>
@@ -227,4 +227,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default StickerGrid;
+export default React.memo(StickerGrid);

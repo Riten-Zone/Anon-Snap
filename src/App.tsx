@@ -3,6 +3,7 @@ import {NavigationContainer} from '@react-navigation/native';
 import {createNativeStackNavigator} from '@react-navigation/native-stack';
 import {GestureHandlerRootView} from 'react-native-gesture-handler';
 import {StyleSheet, LogBox} from 'react-native';
+import StickerPreloader from './components/StickerPreloader';
 
 LogBox.ignoreLogs(['Sending `onAnimatedValueUpdate` with no listeners registered']);
 
@@ -18,6 +19,7 @@ const Stack = createNativeStackNavigator<RootStackParamList>();
 const App: React.FC = () => {
   return (
     <GestureHandlerRootView style={styles.container}>
+      <StickerPreloader />
       <NavigationContainer>
         <Stack.Navigator
           initialRouteName="Home"
