@@ -45,6 +45,7 @@ const EditorScreen: React.FC<EditorScreenProps> = ({navigation, route}) => {
   const [showHypurrPicker, setShowHypurrPicker] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
   const [isUIHidden, setIsUIHidden] = useState(false);
+  const [shouldPreloadStickers, setShouldPreloadStickers] = useState(false);
   const viewShotRef = useRef<ViewShot>(null);
 
   // Shared values for screen-level pinch/rotate gestures on selected sticker
@@ -164,6 +165,9 @@ const EditorScreen: React.FC<EditorScreenProps> = ({navigation, route}) => {
       }
     } catch (error) {
       console.error('[Editor] Face detection error:', error);
+    } finally {
+      // Preload sticker images after face detection is done
+      setShouldPreloadStickers(true);
     }
   }, [photoUri, initializeBlurStickers]);
 
@@ -834,12 +838,14 @@ const EditorScreen: React.FC<EditorScreenProps> = ({navigation, route}) => {
         </TouchableOpacity>
       )}
 
-      {/* Sticker Picker */}
-      <StickerPicker
-        visible={showStickerPicker}
-        onClose={() => setShowStickerPicker(false)}
-        onSelectSticker={handleSelectSticker}
-      />
+      {/* Sticker Picker - only render after stickers preloaded */}
+      {shouldPreloadStickers && (
+        <StickerPicker
+          visible={showStickerPicker}
+          onClose={() => setShowStickerPicker(false)}
+          onSelectSticker={handleSelectSticker}
+        />
+      )}
 
       {/* Share Sheet */}
       <ShareSheet
@@ -851,9 +857,10 @@ const EditorScreen: React.FC<EditorScreenProps> = ({navigation, route}) => {
         isLoading={isExporting}
       />
 
-      {/* Hypurr Picker */}
-      <HypurrPicker
-        visible={showHypurrPicker}
+      {/* Hypurr Picker - only render after stickers preloaded */}
+      {shouldPreloadStickers && (
+        <HypurrPicker
+          visible={showHypurrPicker}
         onClose={() => {
           setShowHypurrPicker(false);
         }}
@@ -882,7 +889,8 @@ const EditorScreen: React.FC<EditorScreenProps> = ({navigation, route}) => {
         hasStickers={hasStickers}
         hasSelectedSticker={selectedStickerId !== null}
         lastChosenSticker={lastChosenSticker}
-      />
+        />
+      )}
 
       {/* Magnifier overlay - outside ViewShot so it won't be captured */}
       <Magnifier
@@ -891,6 +899,20 @@ const EditorScreen: React.FC<EditorScreenProps> = ({navigation, route}) => {
         imageOffset={{x: imageOffsetX, y: imageOffsetY}}
         stickers={stickers}
       />
+
+      {/* Hidden sticker preloader - renders after face detection to cache images */}
+      {shouldPreloadStickers && (
+        <View style={styles.hiddenPreloader} pointerEvents="none">
+          {ALL_STICKERS.map(sticker => (
+            <Image
+              key={sticker.id}
+              source={sticker.source}
+              style={styles.preloadImage}
+              fadeDuration={0}
+            />
+          ))}
+        </View>
+      )}
     </GestureHandlerRootView>
     </MagnifierProvider>
   );
@@ -926,6 +948,17 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
     color: '#000000',
+  },
+  hiddenPreloader: {
+    position: 'absolute',
+    width: 1,
+    height: 1,
+    opacity: 0,
+    overflow: 'hidden',
+  },
+  preloadImage: {
+    width: 1,
+    height: 1,
   },
 });
 

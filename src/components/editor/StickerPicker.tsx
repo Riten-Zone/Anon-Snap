@@ -62,10 +62,8 @@ const StickerPicker: React.FC<StickerPickerProps> = ({
     onClose();
   }, [onSelectSticker, onClose]);
 
-  if (!visible) return null;
-
   return (
-    <View style={[styles.wrapper, !visible && styles.hidden]} pointerEvents={visible ? 'auto' : 'none'}>
+    <View style={styles.wrapper} pointerEvents={visible ? 'auto' : 'none'}>
       <Animated.View style={[styles.backdrop, {opacity: fadeAnim}]}>
         <TouchableOpacity
           style={StyleSheet.absoluteFill}
@@ -91,9 +89,6 @@ const styles = StyleSheet.create({
     ...StyleSheet.absoluteFillObject,
     justifyContent: 'flex-end',
     zIndex: 1000,
-  },
-  hidden: {
-    // Keep mounted but don't block touches when hidden
   },
   backdrop: {
     ...StyleSheet.absoluteFillObject,
