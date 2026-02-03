@@ -1,17 +1,23 @@
-import React, {useEffect, useRef, useCallback} from 'react';
+import React from 'react';
 import {
   View,
   Text,
   StyleSheet,
+  Modal,
   TouchableOpacity,
-  Animated,
+  Image,
+  ScrollView,
   Dimensions,
 } from 'react-native';
 import {X} from 'lucide-react-native';
+import {ALL_STICKERS} from '../../data/stickerRegistry';
 import {colors} from '../../theme';
-import StickerGrid from './StickerGrid';
 
-const {height: SCREEN_HEIGHT} = Dimensions.get('window');
+const {width: SCREEN_WIDTH} = Dimensions.get('window');
+const GRID_PADDING = 16;
+const GRID_GAP = 12;
+const NUM_COLUMNS = 4;
+const ITEM_SIZE = (SCREEN_WIDTH - GRID_PADDING * 2 - GRID_GAP * (NUM_COLUMNS - 1)) / NUM_COLUMNS;
 
 interface HypurrPickerProps {
   visible: boolean;
@@ -36,39 +42,6 @@ const HypurrPicker: React.FC<HypurrPickerProps> = ({
   hasSelectedSticker,
   lastChosenSticker,
 }) => {
-  const slideAnim = useRef(new Animated.Value(SCREEN_HEIGHT)).current;
-  const fadeAnim = useRef(new Animated.Value(0)).current;
-
-  useEffect(() => {
-    if (visible) {
-      Animated.parallel([
-        Animated.timing(slideAnim, {
-          toValue: 0,
-          duration: 250,
-          useNativeDriver: true,
-        }),
-        Animated.timing(fadeAnim, {
-          toValue: 1,
-          duration: 250,
-          useNativeDriver: true,
-        }),
-      ]).start();
-    } else {
-      Animated.parallel([
-        Animated.timing(slideAnim, {
-          toValue: SCREEN_HEIGHT,
-          duration: 200,
-          useNativeDriver: true,
-        }),
-        Animated.timing(fadeAnim, {
-          toValue: 0,
-          duration: 200,
-          useNativeDriver: true,
-        }),
-      ]).start();
-    }
-  }, [visible, slideAnim, fadeAnim]);
-
   // Select a sticker (just highlight it, don't close the picker)
   const handleSelectImage = (source: number, type: 'image' | 'blur') => {
     onSelectSticker(source, type);
@@ -90,103 +63,126 @@ const HypurrPicker: React.FC<HypurrPickerProps> = ({
     onClose();
   };
 
+  if (!visible) {
+    return null;
+  }
+
   return (
-    <View style={styles.wrapper} pointerEvents={visible ? 'auto' : 'none'}>
-      <Animated.View style={[styles.backdrop, {opacity: fadeAnim}]}>
+    <Modal
+      visible={visible}
+      transparent
+      animationType="slide"
+      onRequestClose={onClose}>
+      <View style={styles.overlay}>
         <TouchableOpacity
-          style={StyleSheet.absoluteFill}
+          style={styles.backdrop}
           activeOpacity={1}
           onPress={onClose}
         />
-      </Animated.View>
-      <Animated.View style={[styles.container, {transform: [{translateY: slideAnim}]}]}>
-        {/* Header */}
-        <View style={styles.header}>
-          <Text style={styles.title}>Switch Mode</Text>
-          <TouchableOpacity onPress={onClose} style={styles.closeButton}>
-            <X size={16} color={colors.white} strokeWidth={2} />
-          </TouchableOpacity>
+        <View style={styles.container}>
+          {/* Header */}
+          <View style={styles.header}>
+            <Text style={styles.title}>Switch Mode</Text>
+            <TouchableOpacity onPress={onClose} style={styles.closeButton}>
+              <X size={16} color={colors.white} strokeWidth={2} />
+            </TouchableOpacity>
+          </View>
+
+          {/* Subtitle */}
+          <Text style={styles.subtitle}>
+            {hasStickers
+              ? 'Tap a hypurr, then tap stickers to switch'
+              : 'No stickers to replace'}
+          </Text>
+
+          {/* Grid of hypurr images */}
+          <ScrollView
+            style={styles.scrollView}
+            contentContainerStyle={styles.gridContainer}
+            showsVerticalScrollIndicator={false}>
+            {ALL_STICKERS.map(sticker => (
+              <TouchableOpacity
+                key={sticker.id}
+                style={[
+                  styles.gridItem,
+                  lastChosenSticker.source === sticker.source && styles.gridItemSelected,
+                ]}
+                onPress={() => handleSelectImage(sticker.source, sticker.type)}
+                activeOpacity={0.7}>
+                <Image
+                  source={sticker.source}
+                  style={styles.hypurrImage}
+                  resizeMode="contain"
+                />
+              </TouchableOpacity>
+            ))}
+          </ScrollView>
+
+          {/* Action buttons */}
+          <View style={styles.buttonContainer}>
+            <TouchableOpacity
+              style={[
+                styles.actionButton,
+                (!hasStickers || !hasSelectedSticker) && styles.buttonDisabled,
+              ]}
+              onPress={handleSwitchOne}
+              disabled={!hasStickers || !hasSelectedSticker}
+              activeOpacity={0.7}>
+              <Text
+                style={[
+                  styles.buttonText,
+                  (!hasStickers || !hasSelectedSticker) && styles.buttonTextDisabled,
+                ]}>
+                Switch One
+              </Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={[
+                styles.actionButton,
+                !hasStickers && styles.buttonDisabled,
+              ]}
+              onPress={handleSwitchAll}
+              disabled={!hasStickers}
+              activeOpacity={0.7}>
+              <Text
+                style={[
+                  styles.buttonText,
+                  !hasStickers && styles.buttonTextDisabled,
+                ]}>
+                Switch All
+              </Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={[
+                styles.actionButton,
+                styles.randomButton,
+                !hasStickers && styles.buttonDisabled,
+              ]}
+              onPress={handleRandomiseAll}
+              disabled={!hasStickers}
+              activeOpacity={0.7}>
+              <Text
+                style={[
+                  styles.buttonText,
+                  styles.randomButtonText,
+                  !hasStickers && styles.buttonTextDisabled,
+                ]}>
+                Randomise All
+              </Text>
+            </TouchableOpacity>
+          </View>
         </View>
-
-        {/* Subtitle */}
-        <Text style={styles.subtitle}>
-          {hasStickers
-            ? 'Tap a hypurr, then tap stickers to switch'
-            : 'No stickers to replace'}
-        </Text>
-
-        {/* Grid of stickers by collection */}
-        <StickerGrid
-          onSelectSticker={handleSelectImage}
-          selectedSource={lastChosenSticker.source}
-          showSelectionHighlight={true}
-        />
-
-        {/* Action buttons */}
-        <View style={styles.buttonContainer}>
-          <TouchableOpacity
-            style={[
-              styles.actionButton,
-              (!hasStickers || !hasSelectedSticker) && styles.buttonDisabled,
-            ]}
-            onPress={handleSwitchOne}
-            disabled={!hasStickers || !hasSelectedSticker}
-            activeOpacity={0.7}>
-            <Text
-              style={[
-                styles.buttonText,
-                (!hasStickers || !hasSelectedSticker) && styles.buttonTextDisabled,
-              ]}>
-              Switch One
-            </Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={[
-              styles.actionButton,
-              !hasStickers && styles.buttonDisabled,
-            ]}
-            onPress={handleSwitchAll}
-            disabled={!hasStickers}
-            activeOpacity={0.7}>
-            <Text
-              style={[
-                styles.buttonText,
-                !hasStickers && styles.buttonTextDisabled,
-              ]}>
-              Switch All
-            </Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={[
-              styles.actionButton,
-              styles.randomButton,
-              !hasStickers && styles.buttonDisabled,
-            ]}
-            onPress={handleRandomiseAll}
-            disabled={!hasStickers}
-            activeOpacity={0.7}>
-            <Text
-              style={[
-                styles.buttonText,
-                styles.randomButtonText,
-                !hasStickers && styles.buttonTextDisabled,
-              ]}>
-              Randomise All
-            </Text>
-          </TouchableOpacity>
-        </View>
-      </Animated.View>
-    </View>
+      </View>
+    </Modal>
   );
 };
 
 const styles = StyleSheet.create({
-  wrapper: {
-    ...StyleSheet.absoluteFillObject,
+  overlay: {
+    flex: 1,
     justifyContent: 'flex-end',
-    zIndex: 1000,
   },
   backdrop: {
     ...StyleSheet.absoluteFillObject,
@@ -227,6 +223,34 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingTop: 12,
     paddingBottom: 8,
+  },
+  scrollView: {
+    maxHeight: 300,
+  },
+  gridContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    paddingHorizontal: GRID_PADDING,
+    paddingVertical: 8,
+    gap: GRID_GAP,
+  },
+  gridItem: {
+    width: ITEM_SIZE,
+    height: ITEM_SIZE,
+    borderRadius: 12,
+    backgroundColor: colors.gray800,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 2,
+    borderColor: 'transparent',
+  },
+  gridItemSelected: {
+    borderColor: colors.white,
+    backgroundColor: colors.gray700,
+  },
+  hypurrImage: {
+    width: ITEM_SIZE - 12,
+    height: ITEM_SIZE - 12,
   },
   buttonContainer: {
     flexDirection: 'row',
