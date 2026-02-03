@@ -14,7 +14,7 @@ import {
 import {BLUR_STICKER, STICKER_COLLECTIONS, StickerItem} from '../../data/stickerRegistry';
 import {colors} from '../../theme';
 
-const {width: SCREEN_WIDTH} = Dimensions.get('window');
+const {width: SCREEN_WIDTH, height: SCREEN_HEIGHT} = Dimensions.get('window');
 const GRID_PADDING = 16;
 const GRID_GAP = 12;
 const NUM_COLUMNS = 4;
@@ -22,6 +22,9 @@ const ITEM_SIZE = (SCREEN_WIDTH - GRID_PADDING * 2 - GRID_GAP * (NUM_COLUMNS - 1
 
 const THUMBNAIL_SIZE = 44;
 const THUMBNAIL_GAP = 8;
+const NAV_BAR_HEIGHT = 60;
+// Calculate available height: 70% of screen minus header(~70px), nav bar, and bottom padding(~100px)
+const GRID_MAX_HEIGHT = SCREEN_HEIGHT * 0.7 - 70 - NAV_BAR_HEIGHT - 100;
 
 interface StickerGridProps {
   onSelectSticker: (source: number, type: 'image' | 'blur') => void;
@@ -151,11 +154,9 @@ const StickerGrid: React.FC<StickerGridProps> = ({
 };
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
+  container: {},
   navBar: {
-    maxHeight: 60,
+    height: 60,
     borderBottomWidth: 1,
     borderBottomColor: colors.gray700,
   },
@@ -184,7 +185,7 @@ const styles = StyleSheet.create({
     height: THUMBNAIL_SIZE - 8,
   },
   scrollView: {
-    flex: 1,
+    maxHeight: GRID_MAX_HEIGHT,
   },
   gridContainer: {
     paddingHorizontal: GRID_PADDING,
