@@ -89,6 +89,7 @@ const StickerGrid: React.FC<StickerGridProps> = ({
           source={thumbnail.source}
           style={styles.navThumbnail}
           resizeMode="contain"
+          fadeDuration={0}
         />
       </TouchableOpacity>
     );
@@ -110,6 +111,7 @@ const StickerGrid: React.FC<StickerGridProps> = ({
           source={sticker.source}
           style={styles.stickerImage}
           resizeMode="contain"
+          fadeDuration={0}
         />
       </TouchableOpacity>
     );
