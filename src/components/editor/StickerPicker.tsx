@@ -1,23 +1,17 @@
-import React from 'react';
+import React, {useEffect, useRef, useCallback} from 'react';
 import {
   View,
   Text,
   StyleSheet,
-  Modal,
-  ScrollView,
   TouchableOpacity,
-  Image,
+  Animated,
   Dimensions,
 } from 'react-native';
 import {X} from 'lucide-react-native';
-import {ALL_STICKERS} from '../../data/stickerRegistry';
 import {colors} from '../../theme';
+import StickerGrid from './StickerGrid';
 
-const {width: SCREEN_WIDTH} = Dimensions.get('window');
-const GRID_PADDING = 16;
-const GRID_GAP = 12;
-const NUM_COLUMNS = 4;
-const ITEM_SIZE = (SCREEN_WIDTH - GRID_PADDING * 2 - GRID_GAP * (NUM_COLUMNS - 1)) / NUM_COLUMNS;
+const {height: SCREEN_HEIGHT} = Dimensions.get('window');
 
 interface StickerPickerProps {
   visible: boolean;
@@ -30,58 +24,74 @@ const StickerPicker: React.FC<StickerPickerProps> = ({
   onClose,
   onSelectSticker,
 }) => {
-  if (!visible) return null;
+  const slideAnim = useRef(new Animated.Value(SCREEN_HEIGHT)).current;
+  const fadeAnim = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    if (visible) {
+      Animated.parallel([
+        Animated.timing(slideAnim, {
+          toValue: 0,
+          duration: 250,
+          useNativeDriver: true,
+        }),
+        Animated.timing(fadeAnim, {
+          toValue: 1,
+          duration: 250,
+          useNativeDriver: true,
+        }),
+      ]).start();
+    } else {
+      Animated.parallel([
+        Animated.timing(slideAnim, {
+          toValue: SCREEN_HEIGHT,
+          duration: 200,
+          useNativeDriver: true,
+        }),
+        Animated.timing(fadeAnim, {
+          toValue: 0,
+          duration: 200,
+          useNativeDriver: true,
+        }),
+      ]).start();
+    }
+  }, [visible, slideAnim, fadeAnim]);
+
+  const handleSelectSticker = useCallback((source: number, type: 'image' | 'blur') => {
+    onSelectSticker(source, type);
+    onClose();
+  }, [onSelectSticker, onClose]);
 
   return (
-    <Modal
-      visible={visible}
-      transparent
-      animationType="slide"
-      onRequestClose={onClose}>
-      <View style={styles.overlay}>
+    <View style={[styles.wrapper, !visible && styles.hidden]} pointerEvents={visible ? 'auto' : 'none'}>
+      <Animated.View style={[styles.backdrop, {opacity: fadeAnim}]}>
         <TouchableOpacity
-          style={styles.backdrop}
+          style={StyleSheet.absoluteFill}
           activeOpacity={1}
           onPress={onClose}
         />
-        <View style={styles.container}>
-          <View style={styles.header}>
-            <Text style={styles.title}>Add Sticker</Text>
-            <TouchableOpacity onPress={onClose} style={styles.closeButton}>
-              <X size={16} color={colors.white} strokeWidth={2} />
-            </TouchableOpacity>
-          </View>
-          <ScrollView
-            style={styles.scrollView}
-            contentContainerStyle={styles.gridContainer}
-            showsVerticalScrollIndicator={false}>
-            {ALL_STICKERS.map(sticker => (
-              <TouchableOpacity
-                key={sticker.id}
-                style={styles.gridItem}
-                onPress={() => {
-                  onSelectSticker(sticker.source, sticker.type);
-                  onClose();
-                }}
-                activeOpacity={0.7}>
-                <Image
-                  source={sticker.source}
-                  style={styles.stickerImage}
-                  resizeMode="contain"
-                />
-              </TouchableOpacity>
-            ))}
-          </ScrollView>
+      </Animated.View>
+      <Animated.View style={[styles.container, {transform: [{translateY: slideAnim}]}]}>
+        <View style={styles.header}>
+          <Text style={styles.title}>Add Sticker</Text>
+          <TouchableOpacity onPress={onClose} style={styles.closeButton}>
+            <X size={16} color={colors.white} strokeWidth={2} />
+          </TouchableOpacity>
         </View>
-      </View>
-    </Modal>
+        <StickerGrid onSelectSticker={handleSelectSticker} />
+      </Animated.View>
+    </View>
   );
 };
 
 const styles = StyleSheet.create({
-  overlay: {
-    flex: 1,
+  wrapper: {
+    ...StyleSheet.absoluteFillObject,
     justifyContent: 'flex-end',
+    zIndex: 1000,
+  },
+  hidden: {
+    // Keep mounted but don't block touches when hidden
   },
   backdrop: {
     ...StyleSheet.absoluteFillObject,
@@ -115,28 +125,6 @@ const styles = StyleSheet.create({
     backgroundColor: colors.gray700,
     justifyContent: 'center',
     alignItems: 'center',
-  },
-  scrollView: {
-    maxHeight: 300,
-  },
-  gridContainer: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    paddingHorizontal: GRID_PADDING,
-    paddingVertical: 12,
-    gap: GRID_GAP,
-  },
-  gridItem: {
-    width: ITEM_SIZE,
-    height: ITEM_SIZE,
-    borderRadius: 12,
-    backgroundColor: colors.gray800,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  stickerImage: {
-    width: ITEM_SIZE - 12,
-    height: ITEM_SIZE - 12,
   },
 });
 
