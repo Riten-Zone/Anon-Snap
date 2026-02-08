@@ -20,6 +20,7 @@ interface HypurrPickerProps {
   onSwitchOne: (imageSource: number, stickerType: 'image' | 'blur') => void;
   onSwitchAll: (imageSource: number, stickerType: 'image' | 'blur') => void;
   onRandomiseAll: () => void;
+  onRandomiseCollection: (collectionName: string) => void;
   hasStickers: boolean;
   hasSelectedSticker: boolean;
   lastChosenSticker: {source: number; type: 'image' | 'blur'};
@@ -32,6 +33,7 @@ const HypurrPicker: React.FC<HypurrPickerProps> = ({
   onSwitchOne,
   onSwitchAll,
   onRandomiseAll,
+  onRandomiseCollection,
   hasStickers,
   hasSelectedSticker,
   lastChosenSticker,
@@ -90,6 +92,11 @@ const HypurrPicker: React.FC<HypurrPickerProps> = ({
     onClose();
   };
 
+  const handleRandomiseCollection = (collectionName: string) => {
+    onRandomiseCollection(collectionName);
+    onClose();
+  };
+
   return (
     <View style={styles.wrapper} pointerEvents={visible ? 'auto' : 'none'}>
       <Animated.View style={[styles.backdrop, {opacity: fadeAnim}]}>
@@ -120,6 +127,7 @@ const HypurrPicker: React.FC<HypurrPickerProps> = ({
           onSelectSticker={handleSelectImage}
           selectedSource={lastChosenSticker.source}
           showSelectionHighlight={true}
+          onRandomiseCollection={handleRandomiseCollection}
         />
 
         {/* Action buttons */}

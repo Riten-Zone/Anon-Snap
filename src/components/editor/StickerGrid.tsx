@@ -11,6 +11,7 @@ import {
   NativeSyntheticEvent,
   NativeScrollEvent,
 } from 'react-native';
+import {Shuffle} from 'lucide-react-native';
 import {BLUR_STICKER, STICKER_COLLECTIONS, StickerItem} from '../../data/stickerRegistry';
 import {colors} from '../../theme';
 
@@ -30,6 +31,7 @@ interface StickerGridProps {
   onSelectSticker: (source: number, type: 'image' | 'blur') => void;
   selectedSource?: number;
   showSelectionHighlight?: boolean;
+  onRandomiseCollection?: (collectionName: string) => void;
 }
 
 // All sections including blur as first
@@ -42,6 +44,7 @@ const StickerGrid: React.FC<StickerGridProps> = ({
   onSelectSticker,
   selectedSource,
   showSelectionHighlight = false,
+  onRandomiseCollection,
 }) => {
   const scrollViewRef = useRef<ScrollView>(null);
   const sectionPositions = useRef<{[key: string]: number}>({});
@@ -118,11 +121,22 @@ const StickerGrid: React.FC<StickerGridProps> = ({
   };
 
   const renderSection = (section: {name: string; stickers: StickerItem[]}) => {
+    const showRandomise = onRandomiseCollection && section.name !== 'Blur';
     return (
       <View
         key={section.name}
         onLayout={(event) => handleSectionLayout(section.name, event)}>
-        <Text style={styles.sectionHeader}>{section.name.toUpperCase()}</Text>
+        <View style={styles.sectionHeaderRow}>
+          <Text style={styles.sectionHeader}>{section.name.toUpperCase()}</Text>
+          {showRandomise && (
+            <TouchableOpacity
+              style={styles.randomiseButton}
+              onPress={() => onRandomiseCollection(section.name)}
+              activeOpacity={0.7}>
+              <Shuffle size={12} color={colors.white} strokeWidth={2.5} />
+            </TouchableOpacity>
+          )}
+        </View>
         <View style={styles.stickerRow}>
           {section.stickers.map(renderSticker)}
         </View>
@@ -194,13 +208,26 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     paddingBottom: 20,
   },
+  sectionHeaderRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 12,
+    marginBottom: 10,
+    gap: 8,
+  },
   sectionHeader: {
     fontSize: 13,
     fontWeight: '600',
     color: colors.gray400,
-    marginTop: 12,
-    marginBottom: 10,
     letterSpacing: 0.5,
+  },
+  randomiseButton: {
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    backgroundColor: colors.gray700,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   stickerRow: {
     flexDirection: 'row',

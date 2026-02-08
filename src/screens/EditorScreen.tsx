@@ -15,7 +15,7 @@ import ViewShot from 'react-native-view-shot';
 import type {EditorScreenProps} from '../types';
 import type {StickerData, DetectedFace} from '../types';
 import {useStickers} from '../hooks';
-import {ALL_STICKERS} from '../data/stickerRegistry';
+import {ALL_STICKERS, STICKER_COLLECTIONS} from '../data/stickerRegistry';
 import {useDrawing} from '../hooks/useDrawing';
 import {useActionHistory} from '../hooks/useActionHistory';
 import {detectFacesInImage} from '../services/FaceDetectionService';
@@ -437,6 +437,35 @@ const EditorScreen: React.FC<EditorScreenProps> = ({navigation, route}) => {
     replaceAllWithSources(randomAssignments);
 
     // Record action for undo/redo
+    recordAction({
+      type: 'SWITCH_ALL_STICKERS',
+      payload: {
+        beforeStickers,
+        afterStickers,
+      },
+    });
+  }, [stickers, replaceAllWithSources, recordAction]);
+
+  // Handle randomizing all stickers with random images from a specific collection
+  const handleRandomiseCollection = useCallback((collectionName: string) => {
+    const collection = STICKER_COLLECTIONS.find(c => c.name === collectionName);
+    if (!collection || stickers.length === 0) return;
+
+    const beforeStickers = stickers.map(s => ({...s}));
+    const collectionSources = collection.stickers.map(s => s.source);
+
+    const randomAssignments = stickers.map(() => {
+      return collectionSources[Math.floor(Math.random() * collectionSources.length)];
+    });
+
+    const afterStickers = stickers.map((s, i) => ({
+      ...s,
+      type: 'image' as const,
+      source: randomAssignments[i],
+    }));
+
+    replaceAllWithSources(randomAssignments);
+
     recordAction({
       type: 'SWITCH_ALL_STICKERS',
       payload: {
@@ -886,6 +915,7 @@ const EditorScreen: React.FC<EditorScreenProps> = ({navigation, route}) => {
         }}
         onSwitchAll={handleSwitchAll}
         onRandomiseAll={handleRandomiseAll}
+        onRandomiseCollection={handleRandomiseCollection}
         hasStickers={hasStickers}
         hasSelectedSticker={selectedStickerId !== null}
         lastChosenSticker={lastChosenSticker}
