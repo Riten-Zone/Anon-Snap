@@ -1,4 +1,4 @@
-import Share from 'react-native-share';
+import Share, {Social} from 'react-native-share';
 
 export interface ShareOptions {
   title?: string;
@@ -46,7 +46,7 @@ export async function shareToTwitter(imagePath: string): Promise<boolean> {
 export async function shareToTelegram(imagePath: string): Promise<boolean> {
   try {
     await Share.shareSingle({
-      social: Share.Social.TELEGRAM,
+      social: Social.Telegram,
       url: `file://${imagePath}`,
       type: 'image/png',
       message: 'Anonymized with Anon Snap!',

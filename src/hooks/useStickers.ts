@@ -1,4 +1,4 @@
-import {useCallback, useState} from 'react';
+import {useCallback, useState, useEffect, useRef} from 'react';
 import type {StickerData, DetectedFace} from '../types';
 import {generateId} from '../utils';
 import {ALL_STICKERS, BLUR_STICKER} from '../data/stickerRegistry';
@@ -12,21 +12,41 @@ const DEFAULT_FACE_STICKER =
 // Re-export for backward compatibility
 export const HYPURR_FACE_STICKERS = ALL_STICKERS;
 
-export function useStickers(initialFaces: DetectedFace[] = []) {
+export function useStickers(
+  initialFaces: DetectedFace[] = [],
+  defaultFaceSticker?: {source: number | string; type: 'image' | 'blur'},
+) {
+  const effectiveDefault = defaultFaceSticker ?? {
+    source: DEFAULT_FACE_STICKER.source,
+    type: 'image' as const,
+  };
+
   const [stickers, setStickers] = useState<StickerData[]>([]);
   const [selectedStickerId, setSelectedStickerId] = useState<string | null>(
     null,
   );
   const [isAddMode, setIsAddMode] = useState(false);
   const [isSwitchMode, setIsSwitchMode] = useState(false);
-  const [lastChosenSticker, setLastChosenSticker] = useState<{source: number; type: 'image' | 'blur'}>({
-    source: DEFAULT_FACE_STICKER.source,
-    type: 'image',
+  const [lastChosenSticker, setLastChosenSticker] = useState<{source: number | string; type: 'image' | 'blur'}>({
+    source: effectiveDefault.source,
+    type: effectiveDefault.type,
   });
   const [largestFaceSize, setLargestFaceSize] = useState<{width: number; height: number}>({width: 100, height: 100});
   const [smallestFaceSize, setSmallestFaceSize] = useState<{width: number; height: number}>({width: 100, height: 100});
   const [lastUsedScale, setLastUsedScale] = useState<number | null>(null);
   const [undoneStickers, setUndoneStickers] = useState<StickerData[]>([]);
+
+  // Sync lastChosenSticker when persisted default loads (one-time)
+  const hasInitializedFromProp = useRef(false);
+  useEffect(() => {
+    if (defaultFaceSticker && !hasInitializedFromProp.current) {
+      hasInitializedFromProp.current = true;
+      setLastChosenSticker({
+        source: defaultFaceSticker.source,
+        type: defaultFaceSticker.type,
+      });
+    }
+  }, [defaultFaceSticker?.source, defaultFaceSticker?.type]);
 
   // Initialize stickers for detected faces (uses hypurr13 by default)
   const initializeBlurStickers = useCallback((faces: DetectedFace[]) => {
@@ -72,7 +92,7 @@ export function useStickers(initialFaces: DetectedFace[] = []) {
       return {
         id: generateId(),
         type: 'image',
-        source: DEFAULT_FACE_STICKER.source,
+        source: effectiveDefault.source,
         x: centerX - largestSize.width / 2,
         y: centerY - largestSize.height / 2,
         width: largestSize.width,
@@ -86,13 +106,13 @@ export function useStickers(initialFaces: DetectedFace[] = []) {
     setLargestFaceSize(largestSize);
     setSmallestFaceSize(smallestSize);
     setStickers(faceStickers);
-  }, []);
+  }, [effectiveDefault.source]);
 
   // Add a new sticker (image or blur) - uses largest face size
   // Scale defaults to match smallest detected face, or user's last used scale
   // Returns the created sticker for action history tracking
   const addSticker = useCallback(
-    (imageSource: number, x: number, y: number, stickerType: 'image' | 'blur' = 'image'): StickerData => {
+    (imageSource: number | string, x: number, y: number, stickerType: 'image' | 'blur' = 'image'): StickerData => {
       // Calculate default scale from smallest/largest face ratio
       const defaultScale = smallestFaceSize.width / largestFaceSize.width;
       const scaleToUse = lastUsedScale ?? defaultScale;
@@ -120,7 +140,7 @@ export function useStickers(initialFaces: DetectedFace[] = []) {
   );
 
   // Replace a single sticker with another (image or blur)
-  const replaceWithImage = useCallback((stickerId: string, imageSource: number, stickerType: 'image' | 'blur' = 'image') => {
+  const replaceWithImage = useCallback((stickerId: string, imageSource: number | string, stickerType: 'image' | 'blur' = 'image') => {
     setStickers(prev =>
       prev.map(s =>
         s.id === stickerId ? {...s, type: stickerType, source: stickerType === 'blur' ? 'blur' : imageSource} : s,
@@ -129,7 +149,7 @@ export function useStickers(initialFaces: DetectedFace[] = []) {
   }, []);
 
   // Replace ALL stickers with the same sticker (image or blur)
-  const replaceAllWithImage = useCallback((imageSource: number, stickerType: 'image' | 'blur' = 'image') => {
+  const replaceAllWithImage = useCallback((imageSource: number | string, stickerType: 'image' | 'blur' = 'image') => {
     setStickers(prev =>
       prev.map(s => ({...s, type: stickerType, source: stickerType === 'blur' ? 'blur' : imageSource})),
     );
@@ -137,7 +157,7 @@ export function useStickers(initialFaces: DetectedFace[] = []) {
 
   // Replace ALL stickers with specified image sources (one per sticker)
   // Used for applying pre-computed random or specific assignments
-  const replaceAllWithSources = useCallback((sources: number[]) => {
+  const replaceAllWithSources = useCallback((sources: (number | string)[]) => {
     setStickers(prev =>
       prev.map((s, i) => ({...s, type: 'image' as const, source: sources[i % sources.length]})),
     );
@@ -225,7 +245,7 @@ export function useStickers(initialFaces: DetectedFace[] = []) {
   // Add sticker at center of screen and set as last chosen for more placements
   // Returns the created sticker for action history tracking
   const addStickerAtCenter = useCallback(
-    (imageSource: number, centerX: number, centerY: number, stickerType: 'image' | 'blur' = 'image'): StickerData => {
+    (imageSource: number | string, centerX: number, centerY: number, stickerType: 'image' | 'blur' = 'image'): StickerData => {
       const newSticker = addSticker(imageSource, centerX, centerY, stickerType);
       setLastChosenSticker({source: imageSource, type: stickerType}); // Set as last chosen so tapping screen adds more
       return newSticker;

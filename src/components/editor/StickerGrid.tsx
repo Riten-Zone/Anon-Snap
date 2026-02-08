@@ -1,4 +1,4 @@
-import React, {useRef, useState, useCallback} from 'react';
+import React, {useRef, useState, useCallback, useMemo} from 'react';
 import {
   View,
   Text,
@@ -11,9 +11,10 @@ import {
   NativeSyntheticEvent,
   NativeScrollEvent,
 } from 'react-native';
-import {Shuffle} from 'lucide-react-native';
+import {Shuffle, Plus, Trash2} from 'lucide-react-native';
 import {BLUR_STICKER, STICKER_COLLECTIONS, StickerItem} from '../../data/stickerRegistry';
 import {colors} from '../../theme';
+import {toImageSource} from '../../utils/imageSource';
 
 const {width: SCREEN_WIDTH, height: SCREEN_HEIGHT} = Dimensions.get('window');
 const GRID_PADDING = 16;
@@ -28,27 +29,39 @@ const NAV_BAR_HEIGHT = 60;
 const GRID_MAX_HEIGHT = SCREEN_HEIGHT * 0.7 - 70 - NAV_BAR_HEIGHT - 100;
 
 interface StickerGridProps {
-  onSelectSticker: (source: number, type: 'image' | 'blur') => void;
-  selectedSource?: number;
+  onSelectSticker: (source: number | string, type: 'image' | 'blur') => void;
+  selectedSource?: number | string;
   showSelectionHighlight?: boolean;
   onRandomiseCollection?: (collectionName: string) => void;
+  customStickers?: StickerItem[];
+  onUploadCustomSticker?: () => void;
+  onDeleteCustomSticker?: (id: string) => void;
 }
-
-// All sections including blur as first
-const ALL_SECTIONS = [
-  {name: 'Blur', stickers: [BLUR_STICKER]},
-  ...STICKER_COLLECTIONS,
-];
 
 const StickerGrid: React.FC<StickerGridProps> = ({
   onSelectSticker,
   selectedSource,
   showSelectionHighlight = false,
   onRandomiseCollection,
+  customStickers,
+  onUploadCustomSticker,
+  onDeleteCustomSticker,
 }) => {
   const scrollViewRef = useRef<ScrollView>(null);
   const sectionPositions = useRef<{[key: string]: number}>({});
   const [activeSection, setActiveSection] = useState<string>('Blur');
+
+  // Build sections dynamically to include custom stickers
+  const allSections = useMemo(() => {
+    const sections = [
+      {name: 'Blur', stickers: [BLUR_STICKER]},
+      ...STICKER_COLLECTIONS,
+    ];
+    if (customStickers && customStickers.length > 0) {
+      sections.push({name: 'Custom', stickers: customStickers});
+    }
+    return sections;
+  }, [customStickers]);
 
   const handleSectionLayout = useCallback((sectionName: string, event: LayoutChangeEvent) => {
     sectionPositions.current[sectionName] = event.nativeEvent.layout.y;
@@ -89,7 +102,7 @@ const StickerGrid: React.FC<StickerGridProps> = ({
         onPress={() => scrollToSection(section.name)}
         activeOpacity={0.7}>
         <Image
-          source={thumbnail.source}
+          source={toImageSource(thumbnail.source)}
           style={styles.navThumbnail}
           resizeMode="contain"
           fadeDuration={0}
@@ -100,6 +113,7 @@ const StickerGrid: React.FC<StickerGridProps> = ({
 
   const renderSticker = (sticker: StickerItem) => {
     const isSelected = showSelectionHighlight && selectedSource === sticker.source;
+    const isCustom = typeof sticker.source === 'string' && sticker.id.startsWith('custom_');
 
     return (
       <TouchableOpacity
@@ -109,19 +123,42 @@ const StickerGrid: React.FC<StickerGridProps> = ({
           isSelected && styles.gridItemSelected,
         ]}
         onPress={() => onSelectSticker(sticker.source, sticker.type)}
+        onLongPress={isCustom && onDeleteCustomSticker ? () => onDeleteCustomSticker(sticker.id) : undefined}
         activeOpacity={0.7}>
         <Image
-          source={sticker.source}
+          source={toImageSource(sticker.source)}
           style={styles.stickerImage}
           resizeMode="contain"
           fadeDuration={0}
         />
+        {isCustom && onDeleteCustomSticker && (
+          <TouchableOpacity
+            style={styles.deleteButton}
+            onPress={() => onDeleteCustomSticker(sticker.id)}
+            activeOpacity={0.7}>
+            <Trash2 size={10} color={colors.white} strokeWidth={2.5} />
+          </TouchableOpacity>
+        )}
+      </TouchableOpacity>
+    );
+  };
+
+  const renderUploadButton = () => {
+    if (!onUploadCustomSticker) return null;
+    return (
+      <TouchableOpacity
+        style={[styles.gridItem, styles.uploadButton]}
+        onPress={onUploadCustomSticker}
+        activeOpacity={0.7}>
+        <Plus size={28} color={colors.gray400} strokeWidth={2} />
+        <Text style={styles.uploadText}>Upload</Text>
       </TouchableOpacity>
     );
   };
 
   const renderSection = (section: {name: string; stickers: StickerItem[]}) => {
-    const showRandomise = onRandomiseCollection && section.name !== 'Blur';
+    const showRandomise = onRandomiseCollection && section.name !== 'Blur' && section.name !== 'Custom';
+    const isCustomSection = section.name === 'Custom';
     return (
       <View
         key={section.name}
@@ -131,7 +168,7 @@ const StickerGrid: React.FC<StickerGridProps> = ({
           {showRandomise && (
             <TouchableOpacity
               style={styles.randomiseButton}
-              onPress={() => onRandomiseCollection(section.name)}
+              onPress={() => onRandomiseCollection!(section.name)}
               activeOpacity={0.7}>
               <Shuffle size={11} color={colors.white} strokeWidth={2.5} />
               <Text style={styles.randomiseText}>Randomise</Text>
@@ -140,6 +177,7 @@ const StickerGrid: React.FC<StickerGridProps> = ({
         </View>
         <View style={styles.stickerRow}>
           {section.stickers.map(renderSticker)}
+          {isCustomSection && renderUploadButton()}
         </View>
       </View>
     );
@@ -153,7 +191,16 @@ const StickerGrid: React.FC<StickerGridProps> = ({
         showsHorizontalScrollIndicator={false}
         style={styles.navBar}
         contentContainerStyle={styles.navBarContent}>
-        {ALL_SECTIONS.map(renderNavItem)}
+        {allSections.map(renderNavItem)}
+        {/* Upload nav item when no custom stickers yet */}
+        {onUploadCustomSticker && (!customStickers || customStickers.length === 0) && (
+          <TouchableOpacity
+            style={[styles.navItem, activeSection === 'Upload' && styles.navItemActive]}
+            onPress={onUploadCustomSticker}
+            activeOpacity={0.7}>
+            <Plus size={22} color={colors.gray400} strokeWidth={2} />
+          </TouchableOpacity>
+        )}
       </ScrollView>
 
       {/* Sectioned sticker grid */}
@@ -164,7 +211,18 @@ const StickerGrid: React.FC<StickerGridProps> = ({
         showsVerticalScrollIndicator={false}
         onScroll={handleScroll}
         scrollEventThrottle={200}>
-        {ALL_SECTIONS.map(renderSection)}
+        {allSections.map(renderSection)}
+        {/* Upload section when no custom stickers yet */}
+        {onUploadCustomSticker && (!customStickers || customStickers.length === 0) && (
+          <View>
+            <View style={styles.sectionHeaderRow}>
+              <Text style={styles.sectionHeader}>CUSTOM</Text>
+            </View>
+            <View style={styles.stickerRow}>
+              {renderUploadButton()}
+            </View>
+          </View>
+        )}
       </ScrollView>
     </View>
   );
@@ -258,6 +316,27 @@ const styles = StyleSheet.create({
   stickerImage: {
     width: ITEM_SIZE - 12,
     height: ITEM_SIZE - 12,
+  },
+  uploadButton: {
+    borderStyle: 'dashed',
+    borderColor: colors.gray600,
+    gap: 4,
+  },
+  uploadText: {
+    fontSize: 10,
+    fontWeight: '500',
+    color: colors.gray400,
+  },
+  deleteButton: {
+    position: 'absolute',
+    top: 4,
+    right: 4,
+    width: 20,
+    height: 20,
+    borderRadius: 10,
+    backgroundColor: colors.danger,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
 });
 

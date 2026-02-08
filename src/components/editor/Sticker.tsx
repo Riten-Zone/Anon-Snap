@@ -13,6 +13,7 @@ import {X, RotateCw} from 'lucide-react-native';
 import {Text} from 'react-native';
 import type {StickerData} from '../../types';
 import {colors} from '../../theme';
+import {toImageSource} from '../../utils/imageSource';
 import {useMagnifier} from '../../context/MagnifierContext';
 
 const PIXEL_COLORS = [
@@ -283,7 +284,7 @@ const Sticker: React.FC<StickerProps> = ({
             </View>
           ) : sticker.type === 'image' ? (
             <Image
-              source={sticker.source as number}
+              source={toImageSource(sticker.source as number | string)}
               style={styles.stickerImage}
               resizeMode="contain"
             />

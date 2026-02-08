@@ -2,6 +2,7 @@ import React from 'react';
 import {View, Text, StyleSheet, TouchableOpacity, Image} from 'react-native';
 import {ChevronLeft, Undo2, Redo2, Shuffle, Plus, Pencil, EyeOff} from 'lucide-react-native';
 import {colors} from '../../theme';
+import {toImageSource} from '../../utils/imageSource';
 
 interface TopToolbarProps {
   onAddSticker: () => void;
@@ -17,7 +18,7 @@ interface TopToolbarProps {
   canUndo: boolean;
   onRedo: () => void;
   canRedo: boolean;
-  lastChosenSticker?: {source: number; type: 'image' | 'blur'};
+  lastChosenSticker?: {source: number | string; type: 'image' | 'blur'};
   onOpenPicker?: () => void;
   onHideUI: () => void;
 }
@@ -124,7 +125,7 @@ const TopToolbar: React.FC<TopToolbarProps> = ({
                 onPress={onOpenPicker}
                 activeOpacity={0.7}>
                 <Image
-                  source={lastChosenSticker.source}
+                  source={toImageSource(lastChosenSticker.source)}
                   style={styles.stickerPreviewImage}
                   resizeMode="contain"
                 />

@@ -3,7 +3,7 @@
 
 export interface StickerItem {
   id: string;
-  source: number;
+  source: number | string;
   type: 'blur' | 'image';
 }
 

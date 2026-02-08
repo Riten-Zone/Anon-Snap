@@ -1,4 +1,4 @@
-import React, {useState, useCallback, useMemo, useRef} from 'react';
+import React, {useState, useCallback, useMemo, useRef, useEffect} from 'react';
 import {
   View,
   Text,
@@ -16,6 +16,8 @@ import type {EditorScreenProps} from '../types';
 import type {StickerData, DetectedFace} from '../types';
 import {useStickers} from '../hooks';
 import {ALL_STICKERS, STICKER_COLLECTIONS} from '../data/stickerRegistry';
+import {useDefaultSticker} from '../hooks/useDefaultSticker';
+import {useCustomStickers} from '../hooks/useCustomStickers';
 import {useDrawing} from '../hooks/useDrawing';
 import {useActionHistory} from '../hooks/useActionHistory';
 import {detectFacesInImage} from '../services/FaceDetectionService';
@@ -29,6 +31,7 @@ import DrawingCanvas from '../components/editor/DrawingCanvas';
 import HypurrPicker from '../components/editor/HypurrPicker';
 import Magnifier from '../components/editor/Magnifier';
 import {MagnifierProvider} from '../context/MagnifierContext';
+import {toImageSource} from '../utils/imageSource';
 
 const {width: SCREEN_WIDTH, height: SCREEN_HEIGHT} = Dimensions.get('window');
 
@@ -46,7 +49,12 @@ const EditorScreen: React.FC<EditorScreenProps> = ({navigation, route}) => {
   const [isExporting, setIsExporting] = useState(false);
   const [isUIHidden, setIsUIHidden] = useState(false);
   const [shouldPreloadStickers, setShouldPreloadStickers] = useState(false);
+  const [pendingFaces, setPendingFaces] = useState<DetectedFace[] | null>(null);
   const viewShotRef = useRef<ViewShot>(null);
+
+  // Load persisted default sticker and custom stickers
+  const {defaultSticker, isLoaded: isDefaultLoaded} = useDefaultSticker();
+  const {customStickers} = useCustomStickers();
 
   // Shared values for screen-level pinch/rotate gestures on selected sticker
   const gestureScale = useSharedValue(1);
@@ -81,7 +89,7 @@ const EditorScreen: React.FC<EditorScreenProps> = ({navigation, route}) => {
     addStickerAtPosition,
     restoreSticker,
     updateStickerState,
-  } = useStickers();
+  } = useStickers([], {source: defaultSticker.source, type: defaultSticker.type as 'image' | 'blur'});
 
   const {
     strokes,
@@ -158,18 +166,27 @@ const EditorScreen: React.FC<EditorScreenProps> = ({navigation, route}) => {
           },
         }));
 
-        console.log('[Editor] Initializing blur stickers for', scaledFaces.length, 'faces');
-        initializeBlurStickers(scaledFaces);
+        console.log('[Editor] Detected', scaledFaces.length, 'faces, waiting for default sticker to load');
+        setPendingFaces(scaledFaces);
       } else {
         console.log('[Editor] No faces detected');
+        setShouldPreloadStickers(true);
       }
     } catch (error) {
       console.error('[Editor] Face detection error:', error);
-    } finally {
-      // Preload sticker images after face detection is done
       setShouldPreloadStickers(true);
     }
-  }, [photoUri, initializeBlurStickers]);
+  }, [photoUri]);
+
+  // Initialize stickers only when both faces are detected AND default sticker is loaded
+  useEffect(() => {
+    if (pendingFaces && isDefaultLoaded) {
+      console.log('[Editor] Default sticker loaded, initializing', pendingFaces.length, 'face stickers');
+      initializeBlurStickers(pendingFaces);
+      setPendingFaces(null);
+      setShouldPreloadStickers(true);
+    }
+  }, [pendingFaces, isDefaultLoaded, initializeBlurStickers]);
 
   const handleStickerUpdate = useCallback(
     (id: string, updates: Partial<StickerData>, beforeState?: StickerData) => {
@@ -347,7 +364,7 @@ const EditorScreen: React.FC<EditorScreenProps> = ({navigation, route}) => {
 
   // Called when selecting a sticker from picker - place at center, keep picker open
   const handleSelectSticker = useCallback(
-    (imageSource: number, stickerType: 'image' | 'blur' = 'image') => {
+    (imageSource: number | string, stickerType: 'image' | 'blur' = 'image') => {
       const centerX = displaySize.width / 2;
       const centerY = displaySize.height / 2;
       const newSticker = addStickerAtCenter(imageSource, centerX, centerY, stickerType);
@@ -395,7 +412,7 @@ const EditorScreen: React.FC<EditorScreenProps> = ({navigation, route}) => {
   }, [stickers, lastChosenSticker, replaceWithImage, recordAction]);
 
   // Handle switching all stickers with selected hypurr
-  const handleSwitchAll = useCallback((imageSource: number, stickerType: 'image' | 'blur') => {
+  const handleSwitchAll = useCallback((imageSource: number | string, stickerType: 'image' | 'blur') => {
     // Record before states for all stickers
     const beforeStickers = stickers.map(s => ({...s}));
     replaceAllWithImage(imageSource, stickerType);
@@ -877,6 +894,7 @@ const EditorScreen: React.FC<EditorScreenProps> = ({navigation, route}) => {
           visible={showStickerPicker}
           onClose={() => setShowStickerPicker(false)}
           onSelectSticker={handleSelectSticker}
+          customStickers={customStickers}
         />
       )}
 
@@ -940,7 +958,7 @@ const EditorScreen: React.FC<EditorScreenProps> = ({navigation, route}) => {
           {ALL_STICKERS.map(sticker => (
             <Image
               key={sticker.id}
-              source={sticker.source}
+              source={toImageSource(sticker.source)}
               style={styles.preloadImage}
               fadeDuration={0}
             />

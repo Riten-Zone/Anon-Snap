@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useState, useCallback} from 'react';
 import {
   View,
   Text,
@@ -6,13 +6,27 @@ import {
   TouchableOpacity,
   StatusBar,
   Image,
+  Alert,
 } from 'react-native';
 import {Image as ImageIcon, Camera} from 'lucide-react-native';
 import type {HomeScreenProps} from '../types';
 import {pickImageFromGallery} from '../services';
 import {colors} from '../theme';
+import {toImageSource} from '../utils/imageSource';
+import {useDefaultSticker} from '../hooks/useDefaultSticker';
+import {useCustomStickers} from '../hooks/useCustomStickers';
+import {ALL_STICKERS} from '../data/stickerRegistry';
+import type {StickerItem} from '../data/stickerRegistry';
+import DefaultStickerPicker from '../components/home/DefaultStickerPicker';
+import CustomStickerUploadModal from '../components/home/CustomStickerUploadModal';
 
 const HomeScreen: React.FC<HomeScreenProps> = ({navigation}) => {
+  const {defaultSticker, updateDefault} = useDefaultSticker();
+  const {customStickers, addCustom, removeCustom} = useCustomStickers();
+  const [showStickerPicker, setShowStickerPicker] = useState(false);
+  const [showUploadModal, setShowUploadModal] = useState(false);
+  const [uploadImageUri, setUploadImageUri] = useState<string | null>(null);
+
   const handleImportPhoto = async () => {
     const uri = await pickImageFromGallery();
     if (uri) {
@@ -23,6 +37,65 @@ const HomeScreen: React.FC<HomeScreenProps> = ({navigation}) => {
   const handleTakePhoto = () => {
     navigation.navigate('Camera');
   };
+
+  const handleSelectDefaultSticker = useCallback(
+    async (source: number | string, type: 'image' | 'blur') => {
+      const allItems: StickerItem[] = [...ALL_STICKERS, ...customStickers];
+      const found = allItems.find(s => s.source === source);
+      if (found) {
+        await updateDefault(found);
+      }
+      setShowStickerPicker(false);
+    },
+    [customStickers, updateDefault],
+  );
+
+  const handleUploadCustomSticker = useCallback(async () => {
+    const uri = await pickImageFromGallery();
+    if (uri) {
+      setUploadImageUri(uri);
+      setShowUploadModal(true);
+    }
+  }, []);
+
+  const handleSaveCustomSticker = useCallback(
+    async (processedUri: string) => {
+      const newItem = await addCustom(processedUri);
+      await updateDefault(newItem);
+      setShowUploadModal(false);
+      setShowStickerPicker(false);
+    },
+    [addCustom, updateDefault],
+  );
+
+  const handleDeleteCustomSticker = useCallback(
+    async (id: string) => {
+      Alert.alert(
+        'Delete Custom Sticker',
+        'Are you sure you want to delete this sticker?',
+        [
+          {text: 'Cancel', style: 'cancel'},
+          {
+            text: 'Delete',
+            style: 'destructive',
+            onPress: async () => {
+              // If deleting the current default, reset to fallback
+              if (defaultSticker.id === id) {
+                const fallback =
+                  ALL_STICKERS.find(s => s.id === 'hypurrco_hypurr13_no_bg') ??
+                  ALL_STICKERS.find(s => s.type === 'image');
+                if (fallback) {
+                  await updateDefault(fallback);
+                }
+              }
+              await removeCustom(id);
+            },
+          },
+        ],
+      );
+    },
+    [defaultSticker, updateDefault, removeCustom],
+  );
 
   return (
     <View style={styles.container}>
@@ -38,6 +111,26 @@ const HomeScreen: React.FC<HomeScreenProps> = ({navigation}) => {
       </View>
 
       <View style={styles.buttonContainer}>
+        {/* Default Sticker Selector */}
+        <TouchableOpacity
+          style={[styles.button, styles.defaultStickerButton]}
+          onPress={() => setShowStickerPicker(true)}
+          activeOpacity={0.8}>
+          <View style={styles.defaultStickerRow}>
+            <View style={styles.defaultStickerPreview}>
+              <Image
+                source={toImageSource(defaultSticker.source)}
+                style={styles.defaultStickerImage}
+                resizeMode="contain"
+              />
+            </View>
+            <View style={styles.defaultStickerInfo}>
+              <Text style={styles.buttonText}>Default Face Sticker</Text>
+              <Text style={styles.buttonHint}>Tap to change</Text>
+            </View>
+          </View>
+        </TouchableOpacity>
+
         <TouchableOpacity
           style={[styles.button, styles.importButton]}
           onPress={handleImportPhoto}
@@ -61,6 +154,25 @@ const HomeScreen: React.FC<HomeScreenProps> = ({navigation}) => {
         All processing happens on your device.{'\n'}
         No data is ever uploaded.
       </Text>
+
+      {/* Default Sticker Picker Modal */}
+      <DefaultStickerPicker
+        visible={showStickerPicker}
+        onClose={() => setShowStickerPicker(false)}
+        onSelectSticker={handleSelectDefaultSticker}
+        selectedSource={defaultSticker.source}
+        customStickers={customStickers}
+        onUploadCustomSticker={handleUploadCustomSticker}
+        onDeleteCustomSticker={handleDeleteCustomSticker}
+      />
+
+      {/* Custom Sticker Upload Modal */}
+      <CustomStickerUploadModal
+        visible={showUploadModal}
+        imageUri={uploadImageUri}
+        onClose={() => setShowUploadModal(false)}
+        onSave={handleSaveCustomSticker}
+      />
     </View>
   );
 };
@@ -74,7 +186,7 @@ const styles = StyleSheet.create({
   header: {
     alignItems: 'center',
     marginTop: 60,
-    marginBottom: 40,
+    marginBottom: 30,
     gap: 12,
   },
   logo: {
@@ -95,13 +207,41 @@ const styles = StyleSheet.create({
   buttonContainer: {
     flex: 1,
     justifyContent: 'center',
-    gap: 20,
+    gap: 16,
   },
   button: {
     borderRadius: 20,
     padding: 24,
     alignItems: 'center',
     gap: 12,
+  },
+  defaultStickerButton: {
+    backgroundColor: colors.gray700,
+    borderWidth: 2,
+    borderColor: colors.gray500,
+    padding: 16,
+  },
+  defaultStickerRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 16,
+    width: '100%',
+  },
+  defaultStickerPreview: {
+    width: 56,
+    height: 56,
+    borderRadius: 12,
+    backgroundColor: colors.gray800,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  defaultStickerImage: {
+    width: 44,
+    height: 44,
+  },
+  defaultStickerInfo: {
+    flex: 1,
+    gap: 4,
   },
   importButton: {
     backgroundColor: colors.gray700,
@@ -112,7 +252,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.white,
   },
   buttonText: {
-    fontSize: 22,
+    fontSize: 18,
     fontWeight: '600',
     color: colors.white,
   },

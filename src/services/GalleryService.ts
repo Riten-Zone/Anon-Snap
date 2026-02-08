@@ -20,12 +20,12 @@ export async function saveToGallery(imagePath: string): Promise<string> {
       // CameraRoll handles it internally
     }
 
-    const uri = await CameraRoll.saveAsset(imagePath, {
+    const asset = await CameraRoll.saveAsset(imagePath, {
       type: 'photo',
       album: 'Anon Snap',
     });
 
-    return uri.uri;
+    return asset.node.image.uri;
   } catch (error) {
     console.error('Error saving to gallery:', error);
     throw error;

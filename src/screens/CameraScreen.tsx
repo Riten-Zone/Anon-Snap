@@ -40,7 +40,6 @@ const CameraScreen: React.FC<CameraScreenProps> = ({navigation}) => {
     setIsCapturing(true);
     try {
       const photo: PhotoFile = await cameraRef.current.takePhoto({
-        qualityPrioritization: 'quality',
         flash: 'off',
       });
 

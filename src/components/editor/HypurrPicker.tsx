@@ -16,14 +16,14 @@ const {height: SCREEN_HEIGHT} = Dimensions.get('window');
 interface HypurrPickerProps {
   visible: boolean;
   onClose: () => void;
-  onSelectSticker: (imageSource: number, stickerType: 'image' | 'blur') => void;
-  onSwitchOne: (imageSource: number, stickerType: 'image' | 'blur') => void;
-  onSwitchAll: (imageSource: number, stickerType: 'image' | 'blur') => void;
+  onSelectSticker: (imageSource: number | string, stickerType: 'image' | 'blur') => void;
+  onSwitchOne: (imageSource: number | string, stickerType: 'image' | 'blur') => void;
+  onSwitchAll: (imageSource: number | string, stickerType: 'image' | 'blur') => void;
   onRandomiseAll: () => void;
   onRandomiseCollection: (collectionName: string) => void;
   hasStickers: boolean;
   hasSelectedSticker: boolean;
-  lastChosenSticker: {source: number; type: 'image' | 'blur'};
+  lastChosenSticker: {source: number | string; type: 'image' | 'blur'};
 }
 
 const HypurrPicker: React.FC<HypurrPickerProps> = ({
@@ -72,7 +72,7 @@ const HypurrPicker: React.FC<HypurrPickerProps> = ({
   }, [visible, slideAnim, fadeAnim]);
 
   // Select a sticker (just highlight it, don't close the picker)
-  const handleSelectImage = (source: number, type: 'image' | 'blur') => {
+  const handleSelectImage = (source: number | string, type: 'image' | 'blur') => {
     onSelectSticker(source, type);
     // Don't close - user can then click Switch One/All/Randomise buttons
   };
