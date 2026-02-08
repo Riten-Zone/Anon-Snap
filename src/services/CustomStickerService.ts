@@ -8,12 +8,18 @@ import {
 } from './StorageService';
 
 const CUSTOM_STICKER_DIR = `${RNFS.DocumentDirectoryPath}/custom_stickers`;
+const RELATIVE_DIR = 'custom_stickers';
 
 async function ensureCustomStickerDir(): Promise<void> {
   const exists = await RNFS.exists(CUSTOM_STICKER_DIR);
   if (!exists) {
     await RNFS.mkdir(CUSTOM_STICKER_DIR);
   }
+}
+
+/** Reconstruct a valid file:// URI from sticker ID, using the current DocumentDirectoryPath */
+function resolveUri(id: string): string {
+  return `file://${RNFS.DocumentDirectoryPath}/${RELATIVE_DIR}/${id}.png`;
 }
 
 export async function saveCustomStickerImage(
@@ -28,19 +34,21 @@ export async function saveCustomStickerImage(
 
   const meta: CustomStickerMeta = {
     id,
-    uri: `file://${destPath}`,
+    uri: `${RELATIVE_DIR}/${id}.png`,
     createdAt: Date.now(),
   };
 
   await addCustomSticker(meta);
-  return meta;
+
+  // Return with full resolved URI for immediate use
+  return {...meta, uri: resolveUri(id)};
 }
 
 export async function deleteCustomStickerImage(id: string): Promise<void> {
   const stickers = await getCustomStickers();
   const sticker = stickers.find(s => s.id === id);
   if (sticker) {
-    const filePath = sticker.uri.replace('file://', '');
+    const filePath = `${RNFS.DocumentDirectoryPath}/${RELATIVE_DIR}/${id}.png`;
     const exists = await RNFS.exists(filePath);
     if (exists) {
       await RNFS.unlink(filePath);
@@ -51,9 +59,17 @@ export async function deleteCustomStickerImage(id: string): Promise<void> {
 
 export async function loadCustomStickersAsStickerItems(): Promise<StickerItem[]> {
   const metas = await getCustomStickers();
-  return metas.map(meta => ({
-    id: meta.id,
-    source: meta.uri,
-    type: 'image' as const,
-  }));
+  const items: StickerItem[] = [];
+  for (const meta of metas) {
+    const fullPath = `${RNFS.DocumentDirectoryPath}/${RELATIVE_DIR}/${meta.id}.png`;
+    const exists = await RNFS.exists(fullPath);
+    if (exists) {
+      items.push({
+        id: meta.id,
+        source: `file://${fullPath}`,
+        type: 'image' as const,
+      });
+    }
+  }
+  return items;
 }
