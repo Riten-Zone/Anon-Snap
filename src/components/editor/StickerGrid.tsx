@@ -133,7 +133,8 @@ const StickerGrid: React.FC<StickerGridProps> = ({
               style={styles.randomiseButton}
               onPress={() => onRandomiseCollection(section.name)}
               activeOpacity={0.7}>
-              <Shuffle size={12} color={colors.white} strokeWidth={2.5} />
+              <Shuffle size={11} color={colors.white} strokeWidth={2.5} />
+              <Text style={styles.randomiseText}>Randomise</Text>
             </TouchableOpacity>
           )}
         </View>
@@ -222,12 +223,18 @@ const styles = StyleSheet.create({
     letterSpacing: 0.5,
   },
   randomiseButton: {
-    width: 24,
-    height: 24,
-    borderRadius: 12,
-    backgroundColor: colors.gray700,
-    justifyContent: 'center',
+    flexDirection: 'row',
     alignItems: 'center',
+    gap: 4,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 10,
+    backgroundColor: colors.gray700,
+  },
+  randomiseText: {
+    fontSize: 11,
+    fontWeight: '600',
+    color: colors.white,
   },
   stickerRow: {
     flexDirection: 'row',

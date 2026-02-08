@@ -466,6 +466,10 @@ const EditorScreen: React.FC<EditorScreenProps> = ({navigation, route}) => {
 
     replaceAllWithSources(randomAssignments);
 
+    // Set selected sticker to a random one from this collection
+    const randomSticker = collection.stickers[Math.floor(Math.random() * collection.stickers.length)];
+    setLastChosenSticker({source: randomSticker.source, type: randomSticker.type});
+
     recordAction({
       type: 'SWITCH_ALL_STICKERS',
       payload: {
@@ -473,7 +477,7 @@ const EditorScreen: React.FC<EditorScreenProps> = ({navigation, route}) => {
         afterStickers,
       },
     });
-  }, [stickers, replaceAllWithSources, recordAction]);
+  }, [stickers, replaceAllWithSources, setLastChosenSticker, recordAction]);
 
   // Check if there are any stickers
   const hasStickers = useMemo(() => stickers.length > 0, [stickers]);
