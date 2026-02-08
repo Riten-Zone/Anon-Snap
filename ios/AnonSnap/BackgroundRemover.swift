@@ -4,7 +4,7 @@ import UIKit
 import CoreImage
 
 @objc(BackgroundRemover)
-@available(iOS 15.0, *)
+@available(iOS 17.0, *)
 class BackgroundRemover: NSObject {
 
   @objc
@@ -20,28 +20,25 @@ class BackgroundRemover: NSObject {
           return
         }
 
-        let request = VNGeneratePersonSegmentationRequest()
-        request.qualityLevel = .accurate
-        request.outputPixelFormat = kCVPixelFormatType_OneComponent8
-
+        let originalCI = CIImage(cgImage: cgImage)
         let handler = VNImageRequestHandler(cgImage: cgImage, options: [:])
+
+        // Foreground instance mask — works with ANY object (people, animals, characters, etc.)
+        let request = VNGenerateForegroundInstanceMaskRequest()
         try handler.perform([request])
 
         guard let result = request.results?.first else {
-          reject("E_SEGMENT", "Segmentation failed - no person detected", nil)
+          reject("E_SEGMENT", "No foreground object detected", nil)
           return
         }
-        let maskBuffer = result.pixelBuffer
 
+        let maskBuffer = try result.generateScaledMaskForImage(
+          forInstances: result.allInstances,
+          from: handler
+        )
         let maskImage = CIImage(cvPixelBuffer: maskBuffer)
-        let originalCI = CIImage(cgImage: cgImage)
 
-        // Scale mask to match original image dimensions
-        let scaleX = originalCI.extent.width / maskImage.extent.width
-        let scaleY = originalCI.extent.height / maskImage.extent.height
-        let scaledMask = maskImage.transformed(by: CGAffineTransform(scaleX: scaleX, y: scaleY))
-
-        // Apply mask: blend original with transparent background using mask
+        // Apply mask: blend original with transparent background
         guard let filter = CIFilter(name: "CIBlendWithMask") else {
           reject("E_FILTER", "CIBlendWithMask filter not available", nil)
           return
@@ -49,7 +46,7 @@ class BackgroundRemover: NSObject {
         filter.setValue(originalCI, forKey: kCIInputImageKey)
         filter.setValue(CIImage(color: .clear).cropped(to: originalCI.extent),
                         forKey: kCIInputBackgroundImageKey)
-        filter.setValue(scaledMask, forKey: kCIInputMaskImageKey)
+        filter.setValue(maskImage, forKey: kCIInputMaskImageKey)
 
         guard let outputCI = filter.outputImage else {
           reject("E_FILTER", "Mask application failed", nil)

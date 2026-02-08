@@ -2,17 +2,15 @@ package com.anonsnap
 
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
-import android.graphics.Color
 import com.facebook.react.bridge.Promise
 import com.facebook.react.bridge.ReactApplicationContext
 import com.facebook.react.bridge.ReactContextBaseJavaModule
 import com.facebook.react.bridge.ReactMethod
 import com.google.mlkit.vision.common.InputImage
-import com.google.mlkit.vision.segmentation.Segmentation
-import com.google.mlkit.vision.segmentation.selfie.SelfieSegmenterOptions
+import com.google.mlkit.vision.segmentation.subject.SubjectSegmentation
+import com.google.mlkit.vision.segmentation.subject.SubjectSegmenterOptions
 import java.io.File
 import java.io.FileOutputStream
-import java.nio.ByteOrder
 
 class BackgroundRemoverModule(reactContext: ReactApplicationContext) :
     ReactContextBaseJavaModule(reactContext) {
@@ -28,35 +26,20 @@ class BackgroundRemoverModule(reactContext: ReactApplicationContext) :
 
             val image = InputImage.fromBitmap(bitmap, 0)
 
-            val options = SelfieSegmenterOptions.Builder()
-                .setDetectorMode(SelfieSegmenterOptions.SINGLE_IMAGE_MODE)
-                .enableRawSizeMask()
+            // Subject Segmentation — works with ANY object (people, animals, characters, etc.)
+            val options = SubjectSegmenterOptions.Builder()
+                .enableForegroundBitmap()
                 .build()
 
-            val segmenter = Segmentation.getClient(options)
+            val segmenter = SubjectSegmentation.getClient(options)
 
             segmenter.process(image)
-                .addOnSuccessListener { segmentationMask ->
+                .addOnSuccessListener { result ->
                     try {
-                        val mask = segmentationMask.buffer
-                        mask.order(ByteOrder.nativeOrder())
-                        val maskWidth = segmentationMask.width
-                        val maskHeight = segmentationMask.height
-
-                        val outputBitmap = bitmap.copy(Bitmap.Config.ARGB_8888, true)
-                        val scaleX = bitmap.width.toFloat() / maskWidth
-                        val scaleY = bitmap.height.toFloat() / maskHeight
-
-                        for (y in 0 until bitmap.height) {
-                            for (x in 0 until bitmap.width) {
-                                val maskX = (x / scaleX).toInt().coerceIn(0, maskWidth - 1)
-                                val maskY = (y / scaleY).toInt().coerceIn(0, maskHeight - 1)
-                                mask.position(maskY * maskWidth * 4 + maskX * 4)
-                                val confidence = mask.getFloat()
-                                if (confidence < 0.5f) {
-                                    outputBitmap.setPixel(x, y, Color.TRANSPARENT)
-                                }
-                            }
+                        val foregroundBitmap = result.foregroundBitmap
+                        if (foregroundBitmap == null) {
+                            promise.reject("E_SEGMENT", "No foreground subject detected")
+                            return@addOnSuccessListener
                         }
 
                         val outputFile = File(
@@ -64,7 +47,7 @@ class BackgroundRemoverModule(reactContext: ReactApplicationContext) :
                             "bg_removed_${System.currentTimeMillis()}.png"
                         )
                         FileOutputStream(outputFile).use { out ->
-                            outputBitmap.compress(Bitmap.CompressFormat.PNG, 100, out)
+                            foregroundBitmap.compress(Bitmap.CompressFormat.PNG, 100, out)
                         }
 
                         promise.resolve("file://${outputFile.absolutePath}")
