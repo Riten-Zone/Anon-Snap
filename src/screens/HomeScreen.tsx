@@ -111,6 +111,24 @@ const HomeScreen: React.FC<HomeScreenProps> = ({navigation}) => {
       </View>
 
       <View style={styles.buttonContainer}>
+        <TouchableOpacity
+          style={[styles.button, styles.importButton]}
+          onPress={handleImportPhoto}
+          activeOpacity={0.8}>
+          <ImageIcon size={40} color={colors.white} strokeWidth={1.5} />
+          <Text style={styles.buttonText}>Import Photo</Text>
+          <Text style={styles.buttonHint}>Choose from your gallery</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={[styles.button, styles.cameraButton]}
+          onPress={handleTakePhoto}
+          activeOpacity={0.8}>
+          <Camera size={40} color={colors.black} strokeWidth={1.5} />
+          <Text style={styles.cameraButtonText}>Take Photo</Text>
+          <Text style={styles.cameraButtonHint}>Use camera to capture</Text>
+        </TouchableOpacity>
+
         {/* Default Sticker Selector */}
         <TouchableOpacity
           style={[styles.button, styles.defaultStickerButton]}
@@ -129,24 +147,6 @@ const HomeScreen: React.FC<HomeScreenProps> = ({navigation}) => {
               <Text style={styles.buttonHint}>Tap to change</Text>
             </View>
           </View>
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          style={[styles.button, styles.importButton]}
-          onPress={handleImportPhoto}
-          activeOpacity={0.8}>
-          <ImageIcon size={40} color={colors.white} strokeWidth={1.5} />
-          <Text style={styles.buttonText}>Import Photo</Text>
-          <Text style={styles.buttonHint}>Choose from your gallery</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          style={[styles.button, styles.cameraButton]}
-          onPress={handleTakePhoto}
-          activeOpacity={0.8}>
-          <Camera size={40} color={colors.black} strokeWidth={1.5} />
-          <Text style={styles.cameraButtonText}>Take Photo</Text>
-          <Text style={styles.cameraButtonHint}>Use camera to capture</Text>
         </TouchableOpacity>
       </View>
 
