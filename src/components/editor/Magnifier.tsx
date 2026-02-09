@@ -9,6 +9,7 @@ import Animated, {
 import {useMagnifier} from '../../context/MagnifierContext';
 import {colors} from '../../theme';
 import type {StickerData} from '../../types';
+import {toImageSource} from '../../utils/imageSource';
 
 const {width: SCREEN_WIDTH, height: SCREEN_HEIGHT} = Dimensions.get('window');
 
@@ -124,7 +125,7 @@ const AnimatedStickerPreview: React.FC<AnimatedStickerPreviewProps> = ({
           </View>
         ) : sticker.type === 'image' ? (
           <Image
-            source={sticker.source as number}
+            source={toImageSource(sticker.source as number | string)}
             style={styles.stickerImage}
             resizeMode="contain"
           />
