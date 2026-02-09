@@ -110,3 +110,6 @@ android/.gradle/
 
 # Deployment docs (personal reference)
 docs/
+
+# Demo videos and images
+assets/video_before_after/
