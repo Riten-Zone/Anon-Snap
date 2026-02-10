@@ -3,7 +3,7 @@
 A privacy-preserving photo app for iOS. Take photos, automatically detect faces and apply Hypurr stickers, customize with your own uploads, and share - all 100% offline with no data leaving your device.
 
 ## Features
-
+- Fully offline - privacy first
 - Camera support (front and back)
 - Import photos from gallery
 - On-device face detection (MLKit - no internet required)
@@ -20,7 +20,6 @@ A privacy-preserving photo app for iOS. Take photos, automatically detect faces 
 - Freehand drawing mode
 - Undo/Redo for all editing actions
 - Export to gallery or share via native iOS share sheet
-- Fully offline - privacy first
 
 ## Sticker Collections
 
