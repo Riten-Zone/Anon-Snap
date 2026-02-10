@@ -1,18 +1,22 @@
 # Anon Snap
 
-A privacy-preserving face anonymization app for iOS. Take photos, automatically detect and blur faces, add stickers, and share - all 100% offline with no data leaving your device.
+A privacy-preserving photo app for iOS. Take photos, automatically detect faces and apply Hypurr stickers, customize with your own uploads, and share - all 100% offline with no data leaving your device.
 
 ## Features
 
 - Camera support (front and back)
 - Import photos from gallery
 - On-device face detection (MLKit - no internet required)
-- Automatic face blurring with blur stickers
-- 22 stickers across 5 themed collections
+- Automatic face detection with Hypurr stickers applied by default
+- Customizable default sticker (set any sticker as the default for detected faces)
+- 21 built-in stickers across 5 themed collections + custom sticker upload
+- Upload custom stickers with automatic background removal (iOS VisionKit)
 - Snapchat-like sticker editing (move, rotate, scale, delete)
 - Magnifier loupe when dragging stickers (see what's under your finger)
 - Switch stickers - replace individual or all stickers at once
-- Randomize all stickers with one tap
+- Add stickers manually to any part of the image
+- Randomize by collection or all stickers at once
+- Set custom default sticker for auto-detected faces
 - Freehand drawing mode
 - Undo/Redo for all editing actions
 - Export to gallery or share via native iOS share sheet
@@ -22,15 +26,36 @@ A privacy-preserving face anonymization app for iOS. Take photos, automatically 
 
 | Collection | Count | Stickers |
 |------------|-------|----------|
-| Blur | 2 | Circle blur, Oval blur |
+| Blur | 1 | Circle blur |
 | Emoji | 1 | PoopEmoji |
 | HypurrLiquid | 6 | Hypurr faces (1-6) |
 | HypurrCo | 8 | Hypurr variants (wagmi, zzz, macdonald, and more) |
 | Meme | 5 | Chad, PepeAngry, PepeSad, WojakMonkey, WojakVoid |
+| Custom | Variable | User-uploaded stickers with background removed |
 
-**Total: 22 stickers**
+**Total: 21 built-in stickers + Custom stickers**
 
 *More collections coming soon!*
+
+## Key Features
+
+### Auto Face Detection & Stickering
+- Faces detected automatically using on-device ML (MLKit)
+- **Default:** Hypurr stickers applied to detected faces
+- **Customizable:** Set any sticker (built-in or custom) as the default
+
+### Custom Stickers
+- Upload your own stickers from gallery
+- Automatic background removal using iOS VisionKit
+- Save and reuse across photos
+- Set as default for auto-detected faces
+
+### Sticker Management
+- **Switch One:** Replace individual sticker by tapping
+- **Switch All:** Replace all stickers at once with the same sticker
+- **Randomise All:** Randomize all stickers from entire collection
+- **Randomise Collection:** Randomize stickers from a specific collection
+- **Add to Crowd:** Manually add stickers anywhere on the image
 
 ## Prerequisites
 
