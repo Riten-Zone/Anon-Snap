@@ -465,11 +465,25 @@ const EditorScreen: React.FC<EditorScreenProps> = ({navigation, route}) => {
 
   // Handle randomizing all stickers with random images from a specific collection
   const handleRandomiseCollection = useCallback((collectionName: string) => {
-    const collection = STICKER_COLLECTIONS.find(c => c.name === collectionName);
-    if (!collection || stickers.length === 0) return;
+    if (stickers.length === 0) return;
+
+    let collectionSources: (number | string)[];
+    let randomStickerForSelection: {source: number | string; type: 'image' | 'blur'};
+
+    if (collectionName === 'Custom') {
+      if (!customStickers || customStickers.length === 0) return;
+      collectionSources = customStickers.map(s => s.source);
+      const randomSticker = customStickers[Math.floor(Math.random() * customStickers.length)];
+      randomStickerForSelection = {source: randomSticker.source, type: randomSticker.type};
+    } else {
+      const collection = STICKER_COLLECTIONS.find(c => c.name === collectionName);
+      if (!collection) return;
+      collectionSources = collection.stickers.map(s => s.source);
+      const randomSticker = collection.stickers[Math.floor(Math.random() * collection.stickers.length)];
+      randomStickerForSelection = {source: randomSticker.source, type: randomSticker.type};
+    }
 
     const beforeStickers = stickers.map(s => ({...s}));
-    const collectionSources = collection.stickers.map(s => s.source);
 
     const randomAssignments = stickers.map(() => {
       return collectionSources[Math.floor(Math.random() * collectionSources.length)];
@@ -484,8 +498,7 @@ const EditorScreen: React.FC<EditorScreenProps> = ({navigation, route}) => {
     replaceAllWithSources(randomAssignments);
 
     // Set selected sticker to a random one from this collection
-    const randomSticker = collection.stickers[Math.floor(Math.random() * collection.stickers.length)];
-    setLastChosenSticker({source: randomSticker.source, type: randomSticker.type});
+    setLastChosenSticker(randomStickerForSelection);
 
     recordAction({
       type: 'SWITCH_ALL_STICKERS',
@@ -494,7 +507,7 @@ const EditorScreen: React.FC<EditorScreenProps> = ({navigation, route}) => {
         afterStickers,
       },
     });
-  }, [stickers, replaceAllWithSources, setLastChosenSticker, recordAction]);
+  }, [stickers, customStickers, replaceAllWithSources, setLastChosenSticker, recordAction]);
 
   // Check if there are any stickers
   const hasStickers = useMemo(() => stickers.length > 0, [stickers]);

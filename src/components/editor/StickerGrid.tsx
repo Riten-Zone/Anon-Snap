@@ -157,7 +157,7 @@ const StickerGrid: React.FC<StickerGridProps> = ({
   };
 
   const renderSection = (section: {name: string; stickers: StickerItem[]}) => {
-    const showRandomise = onRandomiseCollection && section.name !== 'Blur' && section.name !== 'Custom';
+    const showRandomise = onRandomiseCollection && section.name !== 'Blur' && (section.name !== 'Custom' || section.stickers.length > 1);
     const isCustomSection = section.name === 'Custom';
     return (
       <View
