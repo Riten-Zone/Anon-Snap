@@ -2,6 +2,13 @@
 
 A privacy-preserving photo app for iOS. Take photos, automatically detect faces and apply Hypurr stickers, customize with your own uploads, and share - all 100% offline with no data leaving your device.
 
+## What's New ✨
+
+**Custom Sticker Enhancements:**
+- Custom stickers now available in both Add and Switch modes
+- Randomise button for custom stickers (when you have 2+ uploaded)
+- Full feature parity between built-in and custom stickers
+
 ## Features
 - Fully offline - privacy first
 - Camera support (front and back)
