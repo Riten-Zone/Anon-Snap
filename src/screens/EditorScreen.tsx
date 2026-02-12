@@ -954,6 +954,7 @@ const EditorScreen: React.FC<EditorScreenProps> = ({navigation, route}) => {
         hasStickers={hasStickers}
         hasSelectedSticker={selectedStickerId !== null}
         lastChosenSticker={lastChosenSticker}
+        customStickers={customStickers}
         />
       )}
 

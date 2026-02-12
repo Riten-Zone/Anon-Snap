@@ -10,6 +10,7 @@ import {
 import {X} from 'lucide-react-native';
 import {colors} from '../../theme';
 import StickerGrid from './StickerGrid';
+import type {StickerItem} from '../../data/stickerRegistry';
 
 const {height: SCREEN_HEIGHT} = Dimensions.get('window');
 
@@ -24,6 +25,7 @@ interface HypurrPickerProps {
   hasStickers: boolean;
   hasSelectedSticker: boolean;
   lastChosenSticker: {source: number | string; type: 'image' | 'blur'};
+  customStickers?: StickerItem[];
 }
 
 const HypurrPicker: React.FC<HypurrPickerProps> = ({
@@ -37,6 +39,7 @@ const HypurrPicker: React.FC<HypurrPickerProps> = ({
   hasStickers,
   hasSelectedSticker,
   lastChosenSticker,
+  customStickers,
 }) => {
   const slideAnim = useRef(new Animated.Value(SCREEN_HEIGHT)).current;
   const fadeAnim = useRef(new Animated.Value(0)).current;
@@ -128,6 +131,7 @@ const HypurrPicker: React.FC<HypurrPickerProps> = ({
           selectedSource={lastChosenSticker.source}
           showSelectionHighlight={true}
           onRandomiseCollection={handleRandomiseCollection}
+          customStickers={customStickers}
         />
 
         {/* Action buttons */}
