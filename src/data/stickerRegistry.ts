@@ -3,7 +3,7 @@
 
 export interface StickerItem {
   id: string;
-  source: number | string;
+  source: number;
   type: 'blur' | 'image';
 }
 
@@ -25,8 +25,18 @@ export const STICKER_COLLECTIONS: StickerCollection[] = [
     name: 'Emoji',
     stickers: [
       {
+        id: 'emoji_ClownEmoji',
+        source: require('../../assets/stickers/Emoji/ClownEmoji.png'),
+        type: 'image',
+      },
+      {
         id: 'emoji_PoopEmoji',
         source: require('../../assets/stickers/Emoji/PoopEmoji.png'),
+        type: 'image',
+      },
+      {
+        id: 'emoji_beans',
+        source: require('../../assets/stickers/Emoji/beans.png'),
         type: 'image',
       },
     ],
