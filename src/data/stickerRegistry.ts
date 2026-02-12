@@ -42,6 +42,21 @@ export const STICKER_COLLECTIONS: StickerCollection[] = [
     ],
   },
   {
+    name: 'Events',
+    stickers: [
+      {
+        id: 'events_consensus-hk-2026-logo-v2',
+        source: require('../../assets/stickers/Events/consensus-hk-2026-logo-v2.png'),
+        type: 'image',
+      },
+      {
+        id: 'events_ethdenver',
+        source: require('../../assets/stickers/Events/ethdenver.png'),
+        type: 'image',
+      },
+    ],
+  },
+  {
     name: 'HypurrCo',
     stickers: [
       {
