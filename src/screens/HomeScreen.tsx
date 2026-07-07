@@ -8,7 +8,7 @@ import {
   Image,
   Alert,
 } from 'react-native';
-import {Image as ImageIcon, Camera} from 'lucide-react-native';
+import {Image as ImageIcon, Camera, Lock} from 'lucide-react-native';
 import type {HomeScreenProps} from '../types';
 import {pickImageFromGallery} from '../services';
 import {colors} from '../theme';
@@ -36,6 +36,10 @@ const HomeScreen: React.FC<HomeScreenProps> = ({navigation}) => {
 
   const handleTakePhoto = () => {
     navigation.navigate('Camera');
+  };
+
+  const handleOpenPrivateAlbum = () => {
+    navigation.navigate('Gallery');
   };
 
   const handleSelectDefaultSticker = useCallback(
@@ -148,6 +152,15 @@ const HomeScreen: React.FC<HomeScreenProps> = ({navigation}) => {
             </View>
           </View>
         </TouchableOpacity>
+
+        <TouchableOpacity
+          style={[styles.button, styles.privateAlbumButton]}
+          onPress={handleOpenPrivateAlbum}
+          activeOpacity={0.8}>
+          <Lock size={32} color={colors.white} strokeWidth={1.5} />
+          <Text style={styles.buttonText}>Private Album</Text>
+          <Text style={styles.buttonHint}>Encrypted photos, just for you</Text>
+        </TouchableOpacity>
       </View>
 
       <Text style={styles.privacyNote}>
@@ -220,6 +233,11 @@ const styles = StyleSheet.create({
     borderWidth: 2,
     borderColor: colors.gray500,
     padding: 16,
+  },
+  privateAlbumButton: {
+    backgroundColor: colors.gray700,
+    borderWidth: 2,
+    borderColor: colors.gray600,
   },
   defaultStickerRow: {
     flexDirection: 'row',

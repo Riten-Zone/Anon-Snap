@@ -10,6 +10,7 @@ import {
   HomeScreen,
   CameraScreen,
   EditorScreen,
+  GalleryScreen,
 } from './screens';
 import type {RootStackParamList} from './types';
 
@@ -36,6 +37,11 @@ const App: React.FC = () => {
             name="Editor"
             component={EditorScreen}
             options={{animation: 'slide_from_bottom'}}
+          />
+          <Stack.Screen
+            name="Gallery"
+            component={GalleryScreen}
+            options={{animation: 'slide_from_right'}}
           />
         </Stack.Navigator>
       </NavigationContainer>

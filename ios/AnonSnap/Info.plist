@@ -41,6 +41,8 @@
 	</dict>
 	<key>NSCameraUsageDescription</key>
 	<string>Anon Snap needs camera access to take photos for face anonymization.</string>
+	<key>NSFaceIDUsageDescription</key>
+	<string>Anon Snap uses Face ID to protect access to your Private Album.</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string>Anon Snap does not use your location.</string>
 	<key>NSPhotoLibraryAddUsageDescription</key>

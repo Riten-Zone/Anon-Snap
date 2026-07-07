@@ -7,13 +7,14 @@ import {
   Modal,
   ActivityIndicator,
 } from 'react-native';
-import {Download, Share2, Home, X} from 'lucide-react-native';
+import {Download, Lock, Share2, Home, X} from 'lucide-react-native';
 import {colors} from '../../theme';
 
 interface ShareSheetProps {
   visible: boolean;
   onClose: () => void;
   onSave: () => void;
+  onSaveToAlbum: () => void;
   onShare: () => void;
   onBackToMenu: () => void;
   isLoading?: boolean;
@@ -23,6 +24,7 @@ const ShareSheet: React.FC<ShareSheetProps> = ({
   visible,
   onClose,
   onSave,
+  onSaveToAlbum,
   onShare,
   onBackToMenu,
   isLoading,
@@ -63,7 +65,14 @@ const ShareSheet: React.FC<ShareSheetProps> = ({
                   style={[styles.mainButton, styles.saveButton]}
                   onPress={onSave}>
                   <Download size={24} color={colors.black} strokeWidth={2} />
-                  <Text style={styles.saveButtonText}>Save Locally</Text>
+                  <Text style={styles.saveButtonText}>Save to Photo Album</Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  style={[styles.mainButton, styles.albumButton]}
+                  onPress={onSaveToAlbum}>
+                  <Lock size={24} color={colors.white} strokeWidth={2} />
+                  <Text style={styles.albumButtonText}>Save to Private Album</Text>
                 </TouchableOpacity>
 
                 <TouchableOpacity
@@ -168,6 +177,16 @@ const styles = StyleSheet.create({
     backgroundColor: colors.gray700,
   },
   shareButtonText: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: colors.white,
+  },
+  albumButton: {
+    backgroundColor: colors.gray700,
+    borderWidth: 1,
+    borderColor: colors.gray500,
+  },
+  albumButtonText: {
     fontSize: 18,
     fontWeight: '600',
     color: colors.white,

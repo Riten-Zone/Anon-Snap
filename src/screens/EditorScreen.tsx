@@ -23,6 +23,8 @@ import {useActionHistory} from '../hooks/useActionHistory';
 import {detectFacesInImage} from '../services/FaceDetectionService';
 import {saveToGallery} from '../services/GalleryService';
 import {shareImage} from '../services/ShareService';
+import {useAlbumAuth} from '../hooks/useAlbumAuth';
+import {useAlbumPhotos} from '../hooks/useAlbumPhotos';
 import Sticker from '../components/editor/Sticker';
 import StickerPicker from '../components/editor/StickerPicker';
 import TopToolbar from '../components/editor/TopToolbar';
@@ -55,6 +57,9 @@ const EditorScreen: React.FC<EditorScreenProps> = ({navigation, route}) => {
   // Load persisted default sticker and custom stickers
   const {defaultSticker, isLoaded: isDefaultLoaded} = useDefaultSticker();
   const {customStickers} = useCustomStickers();
+
+  const {unlock: unlockAlbum} = useAlbumAuth();
+  const {addPhoto: addAlbumPhoto} = useAlbumPhotos();
 
   // Shared values for screen-level pinch/rotate gestures on selected sticker
   const gestureScale = useSharedValue(1);
@@ -760,6 +765,21 @@ const EditorScreen: React.FC<EditorScreenProps> = ({navigation, route}) => {
     }
   }, [handleExport]);
 
+  const handleSaveToAlbum = useCallback(async () => {
+    try {
+      const outputPath = await handleExport();
+      const key = await unlockAlbum();
+      if (!key) {
+        return; // cancelled/failed — keep the sheet open
+      }
+      await addAlbumPhoto(outputPath, key);
+      Alert.alert('Saved!', 'Photo saved to your Private Album.');
+      setShowShareSheet(false);
+    } catch (error) {
+      Alert.alert('Error', 'Failed to save to Private Album.');
+    }
+  }, [handleExport, unlockAlbum, addAlbumPhoto]);
+
   const handleShare = useCallback(async () => {
     try {
       const outputPath = await handleExport();
@@ -916,6 +936,7 @@ const EditorScreen: React.FC<EditorScreenProps> = ({navigation, route}) => {
         visible={showShareSheet}
         onClose={() => setShowShareSheet(false)}
         onSave={handleSave}
+        onSaveToAlbum={handleSaveToAlbum}
         onShare={handleShare}
         onBackToMenu={handleBackToMenu}
         isLoading={isExporting}

@@ -6,6 +6,7 @@ export type RootStackParamList = {
   Editor: {
     photoUri: string;
   };
+  Gallery: undefined;
 };
 
 export type HomeScreenProps = NativeStackScreenProps<
@@ -19,4 +20,8 @@ export type CameraScreenProps = NativeStackScreenProps<
 export type EditorScreenProps = NativeStackScreenProps<
   RootStackParamList,
   'Editor'
+>;
+export type GalleryScreenProps = NativeStackScreenProps<
+  RootStackParamList,
+  'Gallery'
 >;
