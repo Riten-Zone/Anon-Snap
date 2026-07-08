@@ -775,7 +775,7 @@ const EditorScreen: React.FC<EditorScreenProps> = ({navigation, route}) => {
       await addAlbumPhoto(outputPath, key);
       Alert.alert('Saved!', 'Photo saved to your Private Album.');
       setShowShareSheet(false);
-    } catch (error) {
+    } catch {
       Alert.alert('Error', 'Failed to save to Private Album.');
     }
   }, [handleExport, unlockAlbum, addAlbumPhoto]);

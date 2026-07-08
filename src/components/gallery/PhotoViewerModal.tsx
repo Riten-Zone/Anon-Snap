@@ -68,7 +68,7 @@ const PhotoViewerModal: React.FC<PhotoViewerModalProps> = ({
     if (!uri) return;
     try {
       await shareImage({url: uri});
-    } catch (error) {
+    } catch {
       Alert.alert('Error', 'Failed to share photo.');
     }
   }, [uri]);
@@ -79,7 +79,7 @@ const PhotoViewerModal: React.FC<PhotoViewerModalProps> = ({
     try {
       await exportPhotoToDevice(photoId, albumKey);
       Alert.alert('Saved!', 'A copy was saved to your Photo Album.');
-    } catch (error) {
+    } catch {
       Alert.alert('Error', 'Failed to save a copy to the device.');
     } finally {
       setIsBusy(false);
